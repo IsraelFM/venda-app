@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { View, TouchableWithoutFeedback } from 'react-native';
 import {
   Button,
-  CheckBox,
   Input,
   Layout,
   StyleService,
   useStyleSheet,
-  Text,
+  Spinner,
   Icon,
 } from '@ui-kitten/components';
 
@@ -16,6 +15,8 @@ import {
   EmailIcon,
   PersonIcon,
   PlusIcon,
+  GlobeIconOutline,
+  PhoneOutlineIcon,
 } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 
@@ -24,6 +25,16 @@ export default ({ navigation }) => {
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [phone, setPhone] = React.useState();
+  const [loadingCep, setLoadingCep] = React.useState(false);
+  const [cep, setCep] = React.useState();
+  const [number, setNumber] = React.useState();
+  const [dataCep, setDataCep] = React.useState({
+    logradouro: '',
+    bairro: '',
+    localidade: '',
+    uf: '',
+  });
 
   const styles = useStyleSheet(themedStyles);
 
@@ -47,6 +58,31 @@ export default ({ navigation }) => {
     />
   );
 
+  const LoadingIndicator = (props) => (
+    <View style={[props.style, styles.indicator]}>
+      <Spinner size='small'/>
+    </View>
+  );
+
+  const searchCep = () => {
+    if (cep.length !== 8) return;
+    
+    setLoadingCep(true);
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      .then(res => res.json())
+      .then(data => {
+        setDataCep({
+          logradouro: data.logradouro,
+          bairro: data.bairro,
+          localidade: data.localidade,
+          uf: data.uf,
+        });
+
+        setLoadingCep(false);
+      })
+      .catch(() => setLoadingCep(false));
+  }
+
   const renderPasswordIcon = (props) => (
     <TouchableWithoutFeedback onPress={onPasswordIconPress}>
       <Icon {...props} name={passwordVisible ? 'eye-off' : 'eye'} />
@@ -65,7 +101,8 @@ export default ({ navigation }) => {
       </View>
       <Layout style={styles.formContainer} level='1'>
         <Input
-          autoCapitalize='none'
+          autoCapitalize='words'
+          maxLength={150}
           placeholder='Nome de Usuário'
           accessoryRight={PersonIcon}
           value={userName}
@@ -73,21 +110,78 @@ export default ({ navigation }) => {
         />
         <Input
           style={styles.emailInput}
-          autoCapitalize='none'
           placeholder='Email'
+          maxLength={100}
           accessoryRight={EmailIcon}
           value={email}
           onChangeText={setEmail}
         />
         <Input
           style={styles.passwordInput}
-          autoCapitalize='none'
           secureTextEntry={!passwordVisible}
           placeholder='Senha'
+          maxLength={10}
           accessoryRight={renderPasswordIcon}
           value={password}
           onChangeText={setPassword}
         />
+        <Input
+          style={styles.phoneInput}
+          keyboardType='phone-pad'
+          placeholder='Telefone'
+          maxLength={8}
+          accessoryRight={PhoneOutlineIcon}
+          value={phone}
+          onChangeText={setPhone}
+        />
+        <Input
+          style={styles.cepInput}
+          keyboardType='numeric'
+          placeholder='CEP (informe o CEP e abaixo será completado)'
+          accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
+          value={cep}
+          maxLength={8}
+          onChangeText={setCep}
+          onBlur={searchCep}
+        />
+        <Input
+          style={styles.cepInput}
+          placeholder='Estado'
+          maxLength={2}
+          value={dataCep.uf}
+          onChangeText={(uf) => setDataCep({ uf })}
+        />
+        <Input
+          style={styles.cepInput}
+          placeholder='Cidade'
+          maxLength={100}
+          value={dataCep.localidade}
+          onChangeText={(localidade) => setDataCep({ localidade })}
+        />
+        <Input
+          style={styles.cepInput}
+          placeholder='Bairro'
+          maxLength={40}
+          value={dataCep.bairro}
+          onChangeText={(bairro) => setDataCep({ bairro })}
+        />
+        <View style={styles.streetAndNumberContainer}>
+          <Input
+            style={styles.streetInput}
+            placeholder='Rua'
+            maxLength={100}
+            value={dataCep.logradouro}
+            onChangeText={(logradouro) => setDataCep({ logradouro })}
+            />
+          <Input
+            style={styles.numberInput}
+            keyboardType='numeric'
+            placeholder='Número'
+            maxLength={5}
+            value={number}
+            onChangeText={setNumber}
+          />
+        </View>
       </Layout>
       <Button
         style={styles.signUpButton}
@@ -138,6 +232,25 @@ const themedStyles = StyleService.create({
     marginTop: 16,
   },
   passwordInput: {
+    marginTop: 16,
+  },
+  cepInput: {
+    marginTop: 16,
+  },
+  streetAndNumberContainer: {
+    flex: 1,
+    flexDirection: 'row',    
+  },
+  streetInput: {
+    flex: 3,
+    marginTop: 16,
+  },
+  numberInput: {
+    flex: 1,
+    marginLeft: 16,
+    marginTop: 16,
+  },
+  phoneInput: {
     marginTop: 16,
   },
   signUpButton: {
