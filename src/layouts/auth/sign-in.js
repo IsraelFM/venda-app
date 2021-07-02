@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
-import { Button, Input, Layout, StyleService, Text, useStyleSheet, Icon } from '@ui-kitten/components';
+import { Button, Input, Layout, StyleService, useStyleSheet, Icon } from '@ui-kitten/components';
 
 import { PersonIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
@@ -14,7 +14,7 @@ export default ({ navigation }) => {
   const styles = useStyleSheet(themedStyles);
 
   const onSignUpButtonPress = () => {
-    navigation && navigation.navigate('SignUp');
+    navigation && navigation.navigate('Cadastro');
   };
 
   const onForgotPasswordButtonPress = () => {
@@ -54,7 +54,7 @@ export default ({ navigation }) => {
           <Button
             style={styles.forgotPasswordButton}
             appearance='ghost'
-            status='basic'
+            status='danger'
             onPress={onForgotPasswordButtonPress}>
             Esqueceu sua senha?
           </Button>
