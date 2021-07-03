@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "106628447081",
+    "project_id": "venda-livre-app",
+    "storage_bucket": "venda-livre-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:106628447081:android:fe9f8f5a76e23b2dbf5bf8",
+        "android_client_info": {
+          "package_name": "com.vendalivre"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "106628447081-fklj9i1mqioevacaeb6sbj1ljdvfg9ui.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiJquEh_3WJmEX7N70nu-ErCATaxd1Jew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "106628447081-fklj9i1mqioevacaeb6sbj1ljdvfg9ui.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
