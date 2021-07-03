@@ -1,4 +1,4 @@
-package com.helloworld;
+package com.vendalivre;
 
 import android.app.Application;
 import android.content.Context;
