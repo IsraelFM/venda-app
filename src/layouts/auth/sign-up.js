@@ -19,6 +19,7 @@ import {
   PhoneOutlineIcon,
 } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
+import { maskCep, maskPhone } from '../../utils/mask';
 
 export default ({ navigation }) => {
   const [userName, setUserName] = React.useState();
@@ -128,11 +129,11 @@ export default ({ navigation }) => {
         <Input
           style={styles.phoneInput}
           keyboardType='phone-pad'
-          placeholder='Telefone'
-          maxLength={8}
+          placeholder='Telefone (com DDD)'
+          maxLength={15}
           accessoryRight={PhoneOutlineIcon}
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(brutePhone) => setPhone(maskPhone(brutePhone))}
         />
         <Input
           style={styles.cepInput}
@@ -140,8 +141,8 @@ export default ({ navigation }) => {
           placeholder='CEP (informe o CEP e abaixo será completado)'
           accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
           value={cep}
-          maxLength={8}
-          onChangeText={setCep}
+          maxLength={9}
+          onChangeText={(bruteCep) => setCep(maskCep(bruteCep))}
           onBlur={searchCep}
         />
         <Input
