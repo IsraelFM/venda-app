@@ -16,7 +16,6 @@ export const AuthScreen = ({ navigation, state }) => {
         style={{
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: 210,
           backgroundColor: 'color-primary-default'
         }}
       >
@@ -27,6 +26,10 @@ export const AuthScreen = ({ navigation, state }) => {
       </View>
 
       <TabBar
+        indicatorStyle={{
+          borderColor: '#FFF',
+          borderWidth: 2
+        }}
         style={{height: 40}}
         selectedIndex={state.index}
         onSelect={onTabSelect}

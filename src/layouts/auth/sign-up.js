@@ -202,7 +202,7 @@ export default ({ navigation }) => {
 
 const themedStyles = StyleService.create({
   container: {
-    backgroundColor: 'background-basic-color-1',
+    backgroundColor: 'color-success-400',
   },
   headerContainer: {
     justifyContent: 'center',
@@ -215,18 +215,20 @@ const themedStyles = StyleService.create({
     height: 116,
     borderRadius: 58,
     alignSelf: 'center',
-    backgroundColor: 'background-basic-color-1',
+    backgroundColor: 'color-success-400',
     tintColor: 'color-primary-default',
   },
   editAvatarButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: 'background-basic-color-1',
   },
   formContainer: {
     flex: 1,
     paddingTop: 10,
     paddingHorizontal: 16,
+    backgroundColor: 'color-success-400',
   },
   emailInput: {
     marginTop: 16,
