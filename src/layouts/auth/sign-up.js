@@ -66,7 +66,7 @@ export default ({ navigation }) => {
   );
 
   const searchCep = () => {
-    if (cep.length !== 8) return;
+    if (cep.length !== 9) return;
     
     setLoadingCep(true);
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
