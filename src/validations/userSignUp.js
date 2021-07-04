@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-const fieldsValidationUserSchema = yup.object().shape({
+const userSignUpValidationSchema = yup.object().shape({
   username: yup
     .string()
     .max(150)
@@ -47,4 +47,4 @@ const fieldsValidationUserSchema = yup.object().shape({
     .notRequired('Qual o número da sua residência?'),
 });
 
-export default fieldsValidationUserSchema;
+export default userSignUpValidationSchema;

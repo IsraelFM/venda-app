@@ -3,6 +3,7 @@ import auth from '@react-native-firebase/auth';
 
 export const {
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   createUserDocument,
 } = {
   createUserWithEmailAndPassword: async ({
@@ -27,6 +28,35 @@ export const {
       // TODO: Registrar log no Analytics
       return {
         error: 'Um erro inesperado aconteceu. Por favor, tente novamente mais tarde'
+      }
+    }
+  },
+  signInWithEmailAndPassword: async ({
+    email,
+    password,
+  }) => {
+    try {
+      await auth().signInWithEmailAndPassword(email, password);
+
+      return {
+        success: 'Acesso concedido!'
+      }
+    } catch (error) {
+      if (error.code === 'auth/user-disabled') {
+        return {
+          error: 'O usuário vinculado a esse email foi inativado'
+        }
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        return {
+          error: 'O endereço de email informado é inválido'
+        }
+      }
+
+      // TODO: Registrar log no Analytics
+      return {
+        error: 'O email ou a senha estão incorretos'
       }
     }
   },

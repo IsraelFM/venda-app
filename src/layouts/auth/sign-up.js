@@ -23,7 +23,7 @@ import { KeyboardAvoidingView } from './extra/3rd-party';
 import { maskCep, maskPhone } from '../../utils/mask';
 import InputWithError from '../../components/input-and-error';
 
-import fieldsValidationUserSchema from '../../validations/user';
+import userSignUpValidationSchema from '../../validations/userSignUp';
 import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
 
 export default ({ navigation }) => {
@@ -157,7 +157,7 @@ export default ({ navigation }) => {
             editButton={renderEditAvatarButton}
           />
         </View> */}
-        <Formik initialValues={formInitialValues} validationSchema={fieldsValidationUserSchema} onSubmit={onSignUpButtonPress} >
+        <Formik initialValues={formInitialValues} validationSchema={userSignUpValidationSchema} onSubmit={onSignUpButtonPress} >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
               <Layout style={styles.formContainer} level='1'>
