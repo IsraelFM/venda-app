@@ -49,7 +49,7 @@ export default ({ navigation }) => {
 
   const onSignUpButtonPress = () => navigation && navigation.navigate('Cadastro');
 
-  const onForgotPasswordButtonPress = () => navigation && navigation.navigate('ForgotPassword');
+  const onForgotPasswordButtonPress = () => navigation && navigation.navigate('EsqueciMinhaSenha');
 
   const onPasswordIconPress = () => setPasswordVisible(!passwordVisible);
 
