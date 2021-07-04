@@ -3,14 +3,13 @@ import { View, TouchableWithoutFeedback } from 'react-native';
 import { Formik } from 'formik';
 import {
   Button,
-  Input,
   Layout,
   StyleService,
   useStyleSheet,
   Spinner,
   Icon,
 } from '@ui-kitten/components';
-import FlashMessage, { showMessage, hideMessage } from "react-native-flash-message";
+import { showMessage } from "react-native-flash-message";
 
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import {
@@ -24,7 +23,6 @@ import { KeyboardAvoidingView } from './extra/3rd-party';
 import { maskCep, maskPhone } from '../../utils/mask';
 import InputWithError from '../../components/input-and-error';
 
-import storage from '@react-native-firebase/storage';
 import fieldsValidationUserSchema from '../../validations/user';
 import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
 
@@ -98,8 +96,8 @@ export default ({ navigation }) => {
         duration: 2000,
       });
 
-      onSignInButtonPress();
       resetForm({});
+      onSignInButtonPress();
     }
   };
 
@@ -151,14 +149,14 @@ export default ({ navigation }) => {
   return (
     <>
       <KeyboardAvoidingView style={styles.container}>
-        <View style={styles.headerContainer}>
+        {/* <View style={styles.headerContainer}>
           <ProfileAvatar
             style={styles.profileAvatar}
             resizeMode='center'
             source={require('./assets/image-person.png')}
             editButton={renderEditAvatarButton}
           />
-        </View>
+        </View> */}
         <Formik initialValues={formInitialValues} validationSchema={fieldsValidationUserSchema} onSubmit={onSignUpButtonPress} >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
