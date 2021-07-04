@@ -49,60 +49,43 @@ export default ({ navigation }) => {
 
   const onSignUpButtonPress = async (data) => {
     console.log(data);
-    const a = {
-      username: data.username.trim(),
-      email: data.email.trim(),
-      phone: data.phone.trim(),
-      cep: data.cep.trim(),
-      state: data.state.trim(),
-      city: data.city.trim(),
-      district: data.district.trim(),
-      street: data.street.trim(),
-      houseNumber: data.houseNumber.trim(),
-    };
-    console.log(a);
 
-    console.log(isValid);
-    if (isValid) {
-      // envio informações para o backend
-    }
+    auth()
+      .createUserWithEmailAndPassword(data.email.trim(), data.password.trim())
+      .then(data => {
+        console.log("EMAIL E SENHA VÀLIDOS", data);
 
-    // auth()
-    //   .createUserWithEmailAndPassword(email.trim(), password.trim())
-    //   .then(data => {
-    //     console.log("EMAIL E SENHA VÀLIDOS", data);
+        firestore()
+          .collection('Users')
+          .doc(data.user.uid)
+          .set({
+            username: data.username.trim(),
+            phone: data.phone.trim(),
+            cep: data.cep.trim(),
+            state: data.state.trim(),
+            city: data.city.trim(),
+            district: data.district.trim(),
+            street: data.street.trim(),
+            houseNumber: data.houseNumber.trim(),
+          })
+          .then((data) => {
+            console.log('Usuário criado. Cheque seu email para confirmar sua conta', data);
+          })
+          .catch((error) => {
+            console.error('Um erro aconteceu ao tentar cadastrar seu usuário. Por favor, tente novamente', error);
+          });
+      })
+      .catch(error => {
+        if (error.code === 'auth/email-already-in-use') {
+          console.log('O endereço de email já está em uso');
+        }
 
-    //     firestore()
-    //       .collection('Users')
-    //       .doc(data.user.uid)
-    //       .set({
-    //         username: username.trim(),
-    //         phone: phone.trim(),
-    //         cep: cep.trim(),
-    //         street: dataCep.street.trim(),
-    //         district: dataCep.district.trim(),
-    //         city: dataCep.city.trim(),
-    //         state: dataCep.state.trim(),
-    //         houseNumber: number.trim(),
-    //       })
-    //       .then((data) => {
-    //         console.log('User added!', data);
-    //       })
-    //       .catch((error) => {
-    //         console.error('Um erro aconteceu ao tentar cadastrar seu usuário. Por favor, tente novamente', error);
-    //       });
-    //   })
-    //   .catch(error => {
-    //     if (error.code === 'auth/email-already-in-use') {
-    //       console.log('O endereço de email já está em uso');
-    //     }
+        if (error.code === 'auth/invalid-email') {
+          console.log('O endereço de email informado é inválido');
+        }
 
-    //     if (error.code === 'auth/invalid-email') {
-    //       console.log('O endereço de email informado é inválido');
-    //     }
-
-    //     console.error('Ops... Parece que não de.Por favor, tente novamente', error);
-    //   });
+        console.error('Ops... Parece que não de.Por favor, tente novamente', error);
+      });
     // navigation && navigation.goBack();
   };
 
