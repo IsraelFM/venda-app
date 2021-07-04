@@ -10,7 +10,7 @@ export const {
     password,
   }) => {
     try {
-      return await auth().createUserWithEmailAndPassword(email.trim(), password.trim())
+      return await auth().createUserWithEmailAndPassword(email, password);
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         return {
@@ -24,7 +24,10 @@ export const {
         }
       }
 
-      console.error(error);
+      // TODO: Registrar log no Analytics
+      return {
+        error: 'Um erro inesperado aconteceu. Por favor, tente novamente mais tarde'
+      }
     }
   },
   createUserDocument: async ({
@@ -37,10 +40,8 @@ export const {
         .doc(userUid)
         .set(userFields);
 
-      authResponse.user.sendEmailVerification();
-
       return {
-        success: 'Usuário criado. Cheque seu email para confirmar sua conta'
+        success: 'Usuário criado. Verifique seu email para confirmar sua conta'
       }
     } catch (error) {
       return {

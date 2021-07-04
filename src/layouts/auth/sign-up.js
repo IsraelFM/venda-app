@@ -30,7 +30,6 @@ import { createUserDocument, createUserWithEmailAndPassword } from '../../fireba
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [authSuccessfully, setAuthSuccessfully] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
 
   const formInitialValues = {
@@ -48,30 +47,27 @@ export default ({ navigation }) => {
 
   const styles = useStyleSheet(themedStyles);
 
-  const onSignUpButtonPress = async (data) => {
-    if (!authSuccessfully) {
-      const createAuthUserResponse = await createUserWithEmailAndPassword({
-        email: 'data.email.trim()',
-        password: 'data.password.trim()',
+  const onSignUpButtonPress = async (data, { resetForm }) => {
+    let createAuthUserResponse = null;
+
+    createAuthUserResponse = await createUserWithEmailAndPassword({
+      email: data.email.trim(),
+      password: data.password.trim(),
+    });
+
+    if (createAuthUserResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: createAuthUserResponse.error,
+        type: 'danger',
+        duration: 2000,
       });
 
-      if (createAuthUserResponse.error) {
-        showMessage({
-          message: 'Ops...',
-          description: createAuthUserResponse.error,
-          type: 'danger',
-          duration: 2000,
-        });
-
-        setAuthSuccessfully(false);
-        return;
-      }
-
-      setAuthSuccessfully(true);
+      return;
     }
 
     const createDocumentResponse = await createUserDocument({
-      userUid: authResponse.user.id,
+      userUid: createAuthUserResponse.user.uid,
       userFields: {
         username: data.username.trim(),
         phone: data.phone.trim(),
@@ -91,12 +87,19 @@ export default ({ navigation }) => {
         type: 'danger',
         duration: 2000,
       });
+
+      createAuthUserResponse.user.delete();
     } else {
+      createAuthUserResponse.user.sendEmailVerification();
+
       showMessage({
-        message: createDocumentResponse.error,
+        message: createDocumentResponse.success,
         type: 'success',
         duration: 2000,
       });
+
+      onSignInButtonPress();
+      resetForm({});
     }
   };
 
@@ -272,8 +275,8 @@ export default ({ navigation }) => {
               <Button
                 style={styles.signUpButton}
                 size='giant'
-                // disabled={!isValid}
-                onPress={onSignUpButtonPress}
+                disabled={!isValid}
+                onPress={handleSubmit}
               >
                 CADASTRAR
               </Button>

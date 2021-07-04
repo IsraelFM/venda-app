@@ -9,7 +9,7 @@ const fieldsValidationUserSchema = yup.object().shape({
     .string()
     .max(100)
     .email('Email inválido. Insira um email um email no formato seu@email.com')
-    .required('É preciso informar uma descrição para o produto'),
+    .required('Informe um email para logar no app'),
   password: yup
     .string()
     .min(8, 'A senha precisa ter, no mínimo, 8 caracteres')
