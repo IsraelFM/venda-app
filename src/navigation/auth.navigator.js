@@ -20,8 +20,8 @@ const AuthMenuNavigator = () => (
 export const AuthNavigator = () => (
 	<Stack.Navigator headerMode='none'>
 		<Stack.Screen name='Auth' component={AuthMenuNavigator} />
-		{/* <Stack.Screen name='SignIn' component={SignInScreen} />
-		<Stack.Screen name='SignUp' component={SignUpScreen} /> */}
+		{/* <Stack.Screen name='Login' component={SignInScreen} />
+		<Stack.Screen name='Cadastro' component={SignUpScreen} /> */}
 		{/* <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} /> */}
 	</Stack.Navigator>
 );

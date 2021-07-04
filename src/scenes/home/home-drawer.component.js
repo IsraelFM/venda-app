@@ -13,6 +13,7 @@ import { GithubIcon } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
+import { PersonIcon } from '../../layouts/auth/extra/icons';
 
 const version = AppInfoService.getVersion();
 
@@ -28,6 +29,14 @@ export const HomeDrawer = ({ navigation }) => {
         navigation.toggleDrawer();
       },
     },
+    {
+      title: 'Entrar',
+      icon: PersonIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Auth');
+      },
+    },  
   ];
 
   const renderHeader = () => (
