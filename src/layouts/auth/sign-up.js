@@ -10,6 +10,7 @@ import {
   Spinner,
   Icon,
 } from '@ui-kitten/components';
+import FlashMessage, { showMessage, hideMessage } from "react-native-flash-message";
 
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import {
@@ -24,12 +25,12 @@ import { maskCep, maskPhone } from '../../utils/mask';
 import InputWithError from '../../components/input-and-error';
 
 import storage from '@react-native-firebase/storage';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
 import fieldsValidationUserSchema from '../../validations/user';
+import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [authSuccessfully, setAuthSuccessfully] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
 
   const formInitialValues = {
@@ -48,45 +49,55 @@ export default ({ navigation }) => {
   const styles = useStyleSheet(themedStyles);
 
   const onSignUpButtonPress = async (data) => {
-    console.log(data);
-
-    auth()
-      .createUserWithEmailAndPassword(data.email.trim(), data.password.trim())
-      .then(data => {
-        console.log("EMAIL E SENHA VÀLIDOS", data);
-
-        firestore()
-          .collection('Users')
-          .doc(data.user.uid)
-          .set({
-            username: data.username.trim(),
-            phone: data.phone.trim(),
-            cep: data.cep.trim(),
-            state: data.state.trim(),
-            city: data.city.trim(),
-            district: data.district.trim(),
-            street: data.street.trim(),
-            houseNumber: data.houseNumber.trim(),
-          })
-          .then((data) => {
-            console.log('Usuário criado. Cheque seu email para confirmar sua conta', data);
-          })
-          .catch((error) => {
-            console.error('Um erro aconteceu ao tentar cadastrar seu usuário. Por favor, tente novamente', error);
-          });
-      })
-      .catch(error => {
-        if (error.code === 'auth/email-already-in-use') {
-          console.log('O endereço de email já está em uso');
-        }
-
-        if (error.code === 'auth/invalid-email') {
-          console.log('O endereço de email informado é inválido');
-        }
-
-        console.error('Ops... Parece que não de.Por favor, tente novamente', error);
+    if (!authSuccessfully) {
+      const createAuthUserResponse = await createUserWithEmailAndPassword({
+        email: 'data.email.trim()',
+        password: 'data.password.trim()',
       });
-    // navigation && navigation.goBack();
+
+      if (createAuthUserResponse.error) {
+        showMessage({
+          message: 'Ops...',
+          description: createAuthUserResponse.error,
+          type: 'danger',
+          duration: 2000,
+        });
+
+        setAuthSuccessfully(false);
+        return;
+      }
+
+      setAuthSuccessfully(true);
+    }
+
+    const createDocumentResponse = await createUserDocument({
+      userUid: authResponse.user.id,
+      userFields: {
+        username: data.username.trim(),
+        phone: data.phone.trim(),
+        cep: data.cep.trim(),
+        state: data.state.trim(),
+        city: data.city.trim(),
+        district: data.district.trim(),
+        street: data.street.trim(),
+        houseNumber: data.houseNumber.trim(),
+      }
+    });
+
+    if (createDocumentResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: createDocumentResponse.error,
+        type: 'danger',
+        duration: 2000,
+      });
+    } else {
+      showMessage({
+        message: createDocumentResponse.error,
+        type: 'success',
+        duration: 2000,
+      });
+    }
   };
 
   const onSignInButtonPress = () => {
@@ -135,148 +146,150 @@ export default ({ navigation }) => {
   );
 
   return (
-    <KeyboardAvoidingView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <ProfileAvatar
-          style={styles.profileAvatar}
-          resizeMode='center'
-          source={require('./assets/image-person.png')}
-          editButton={renderEditAvatarButton}
-        />
-      </View>
-      <Formik initialValues={formInitialValues} validationSchema={fieldsValidationUserSchema} onSubmit={onSignUpButtonPress} >
-        {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
-          <>
-            <Layout style={styles.formContainer} level='1'>
-              <InputWithError
-                autoCapitalize='words'
-                maxLength={150}
-                placeholder='Nome de Usuário'
-                accessoryRight={PersonIcon}
-                value={values.username}
-                onChangeText={handleChange('username')}
-                onBlur={() => setFieldTouched('username')}
-                flags={{ error: errors?.username, touched: touched?.username }}
-              />
-              <InputWithError
-                style={styles.emailInput}
-                placeholder='Email'
-                maxLength={100}
-                accessoryRight={EmailIcon}
-                value={values.email}
-                onChangeText={handleChange('email')}
-                onBlur={() => setFieldTouched('email')}
-                flags={{ error: errors?.email, touched: touched?.email }}
-              />
-              <InputWithError
-                style={styles.passwordInput}
-                secureTextEntry={!passwordVisible}
-                placeholder='Senha'
-                maxLength={10}
-                accessoryRight={renderPasswordIcon}
-                value={values.password}
-                onChangeText={handleChange('password')}
-                onBlur={() => setFieldTouched('password')}
-                flags={{ error: errors?.password, touched: touched?.password }}
-              />
-              <InputWithError
-                style={styles.phoneInput}
-                keyboardType='phone-pad'
-                placeholder='Telefone (com DDD)'
-                maxLength={15}
-                accessoryRight={PhoneOutlineIcon}
-                value={values.phone}
-                onChangeText={(brutePhone) => setFieldValue('phone', maskPhone(brutePhone))}
-                onBlur={() => setFieldTouched('phone')}
-                flags={{ error: errors?.phone, touched: touched?.phone }}
-              />
-              <InputWithError
-                style={styles.cepInput}
-                keyboardType='numeric'
-                placeholder='CEP (informe o CEP antes de prosseguir)'
-                accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
-                value={values.cep}
-                maxLength={9}
-                onChangeText={(bruteCep) => setFieldValue('cep', maskCep(bruteCep))}
-                onBlur={() => {
-                  setFieldTouched('cep');
-                  !errors?.cep && searchCep(values.cep, setFieldValue)
-                }}
-                flags={{ error: errors?.cep, touched: touched?.cep }}
-              />
-              <InputWithError
-                style={styles.cepInput}
-                placeholder='Estado'
-                maxLength={2}
-                value={values.state}
-                onChangeText={handleChange('state')}
-                onBlur={() => setFieldTouched('state')}
-                flags={{ error: errors?.state, touched: touched?.state }}
-              />
-              <InputWithError
-                style={styles.cepInput}
-                placeholder='Cidade'
-                maxLength={100}
-                value={values.city}
-                onChangeText={handleChange('city')}
-                onBlur={() => setFieldTouched('city')}
-                flags={{ error: errors?.city, touched: touched?.city }}
-              />
-              <InputWithError
-                style={styles.cepInput}
-                placeholder='Bairro'
-                maxLength={40}
-                value={values.district}
-                onChangeText={handleChange('district')}
-                onBlur={() => setFieldTouched('district')}
-                flags={{ error: errors?.district, touched: touched?.district }}
-              />
-              <View style={styles.streetAndNumberContainer}>
-                <View style={styles.streetContainer}>
-                  <InputWithError
-                    style={styles.streetInput}
-                    placeholder='Rua'
-                    maxLength={100}
-                    value={values.street}
-                    onChangeText={handleChange('street')}
-                    onBlur={() => setFieldTouched('street')}
-                    flags={{ error: errors?.street, touched: touched?.street }}
-                  />
+    <>
+      <KeyboardAvoidingView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <ProfileAvatar
+            style={styles.profileAvatar}
+            resizeMode='center'
+            source={require('./assets/image-person.png')}
+            editButton={renderEditAvatarButton}
+          />
+        </View>
+        <Formik initialValues={formInitialValues} validationSchema={fieldsValidationUserSchema} onSubmit={onSignUpButtonPress} >
+          {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
+            <>
+              <Layout style={styles.formContainer} level='1'>
+                <InputWithError
+                  autoCapitalize='words'
+                  maxLength={150}
+                  placeholder='Nome de Usuário'
+                  accessoryRight={PersonIcon}
+                  value={values.username}
+                  onChangeText={handleChange('username')}
+                  onBlur={() => setFieldTouched('username')}
+                  flags={{ error: errors?.username, touched: touched?.username }}
+                />
+                <InputWithError
+                  style={styles.emailInput}
+                  placeholder='Email'
+                  maxLength={100}
+                  accessoryRight={EmailIcon}
+                  value={values.email}
+                  onChangeText={handleChange('email')}
+                  onBlur={() => setFieldTouched('email')}
+                  flags={{ error: errors?.email, touched: touched?.email }}
+                />
+                <InputWithError
+                  style={styles.passwordInput}
+                  secureTextEntry={!passwordVisible}
+                  placeholder='Senha'
+                  maxLength={10}
+                  accessoryRight={renderPasswordIcon}
+                  value={values.password}
+                  onChangeText={handleChange('password')}
+                  onBlur={() => setFieldTouched('password')}
+                  flags={{ error: errors?.password, touched: touched?.password }}
+                />
+                <InputWithError
+                  style={styles.phoneInput}
+                  keyboardType='phone-pad'
+                  placeholder='Telefone (com DDD)'
+                  maxLength={15}
+                  accessoryRight={PhoneOutlineIcon}
+                  value={values.phone}
+                  onChangeText={(brutePhone) => setFieldValue('phone', maskPhone(brutePhone))}
+                  onBlur={() => setFieldTouched('phone')}
+                  flags={{ error: errors?.phone, touched: touched?.phone }}
+                />
+                <InputWithError
+                  style={styles.cepInput}
+                  keyboardType='numeric'
+                  placeholder='CEP (informe o CEP antes de prosseguir)'
+                  accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
+                  value={values.cep}
+                  maxLength={9}
+                  onChangeText={(bruteCep) => setFieldValue('cep', maskCep(bruteCep))}
+                  onBlur={() => {
+                    setFieldTouched('cep');
+                    !errors?.cep && searchCep(values.cep, setFieldValue)
+                  }}
+                  flags={{ error: errors?.cep, touched: touched?.cep }}
+                />
+                <InputWithError
+                  style={styles.cepInput}
+                  placeholder='Estado'
+                  maxLength={2}
+                  value={values.state}
+                  onChangeText={handleChange('state')}
+                  onBlur={() => setFieldTouched('state')}
+                  flags={{ error: errors?.state, touched: touched?.state }}
+                />
+                <InputWithError
+                  style={styles.cepInput}
+                  placeholder='Cidade'
+                  maxLength={100}
+                  value={values.city}
+                  onChangeText={handleChange('city')}
+                  onBlur={() => setFieldTouched('city')}
+                  flags={{ error: errors?.city, touched: touched?.city }}
+                />
+                <InputWithError
+                  style={styles.cepInput}
+                  placeholder='Bairro'
+                  maxLength={40}
+                  value={values.district}
+                  onChangeText={handleChange('district')}
+                  onBlur={() => setFieldTouched('district')}
+                  flags={{ error: errors?.district, touched: touched?.district }}
+                />
+                <View style={styles.streetAndNumberContainer}>
+                  <View style={styles.streetContainer}>
+                    <InputWithError
+                      style={styles.streetInput}
+                      placeholder='Rua'
+                      maxLength={100}
+                      value={values.street}
+                      onChangeText={handleChange('street')}
+                      onBlur={() => setFieldTouched('street')}
+                      flags={{ error: errors?.street, touched: touched?.street }}
+                    />
+                  </View>
+                  <View style={styles.houseNumberContainer}>
+                    <InputWithError
+                      style={styles.houseNumberInput}
+                      keyboardType='numeric'
+                      placeholder='Número'
+                      maxLength={5}
+                      value={values.houseNumber}
+                      onChangeText={handleChange('houseNumber')}
+                      onBlur={() => setFieldTouched('houseNumber')}
+                      flags={{ error: errors?.houseNumber, touched: touched?.houseNumber }}
+                    />
+                  </View>
                 </View>
-                <View style={styles.houseNumberContainer}>
-                  <InputWithError
-                    style={styles.houseNumberInput}
-                    keyboardType='numeric'
-                    placeholder='Número'
-                    maxLength={5}
-                    value={values.houseNumber}
-                    onChangeText={handleChange('houseNumber')}
-                    onBlur={() => setFieldTouched('houseNumber')}
-                    flags={{ error: errors?.houseNumber, touched: touched?.houseNumber }}
-                  />
-                </View>
-              </View>
-            </Layout>
-            <Button
-              style={styles.signUpButton}
-              size='giant'
-              // disabled={!isValid}
-              onPress={handleSubmit}
-            >
-              CADASTRAR
-            </Button>
-          </>
-        )}
-      </Formik>
+              </Layout>
+              <Button
+                style={styles.signUpButton}
+                size='giant'
+                // disabled={!isValid}
+                onPress={onSignUpButtonPress}
+              >
+                CADASTRAR
+              </Button>
+            </>
+          )}
+        </Formik>
 
-      <Button
-        style={styles.signInButton}
-        appearance='ghost'
-        status='basic'
-        onPress={onSignInButtonPress}>
-        Já tem uma conta? Faça login
-      </Button>
-    </KeyboardAvoidingView>
+        <Button
+          style={styles.signInButton}
+          appearance='ghost'
+          status='basic'
+          onPress={onSignInButtonPress}>
+          Já tem uma conta? Faça login
+        </Button>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 

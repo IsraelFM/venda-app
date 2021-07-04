@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import * as eva from '@eva-design/eva';
+import FlashMessage from "react-native-flash-message";
 
 import { AppNavigator } from '../../navigation/app.navigator';
 
@@ -21,6 +22,7 @@ const App = () => {
           // customMapping={mapping}
         >
           <SafeAreaProvider>
+            <FlashMessage position="top" />
             <StatusBar />
             <AppNavigator />
           </SafeAreaProvider>

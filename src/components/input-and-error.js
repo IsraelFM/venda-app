@@ -7,7 +7,6 @@ const InputWithError = ({
   ...inputProps
 }) => {
   const styles = useStyleSheet(themedStyles);
-  console.log(flags);
   const { touched = null, error = null } = flags || {};
 
   return (
