@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
+import { Formik } from 'formik';
 import {
   Button,
   Input,
@@ -20,27 +21,89 @@ import {
 } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { maskCep, maskPhone } from '../../utils/mask';
+import InputWithError from '../../components/input-and-error';
+
+import storage from '@react-native-firebase/storage';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import fieldsValidationUserSchema from '../../validations/user';
 
 export default ({ navigation }) => {
-  const [userName, setUserName] = React.useState();
-  const [email, setEmail] = React.useState();
-  const [password, setPassword] = React.useState();
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [phone, setPhone] = React.useState();
   const [loadingCep, setLoadingCep] = React.useState(false);
-  const [cep, setCep] = React.useState();
-  const [number, setNumber] = React.useState();
-  const [dataCep, setDataCep] = React.useState({
-    logradouro: '',
-    bairro: '',
-    localidade: '',
-    uf: '',
-  });
+
+  const formInitialValues = {
+    username: '',
+    email: '',
+    password: '',
+    phone: '',
+    cep: '',
+    street: '',
+    district: '',
+    city: '',
+    state: '',
+    houseNumber: '',
+  }
 
   const styles = useStyleSheet(themedStyles);
 
-  const onSignUpButtonPress = () => {
-    navigation && navigation.goBack();
+  const onSignUpButtonPress = async (data) => {
+    console.log(data);
+    const a = {
+      username: data.username.trim(),
+      email: data.email.trim(),
+      phone: data.phone.trim(),
+      cep: data.cep.trim(),
+      state: data.state.trim(),
+      city: data.city.trim(),
+      district: data.district.trim(),
+      street: data.street.trim(),
+      houseNumber: data.houseNumber.trim(),
+    };
+    console.log(a);
+
+    console.log(isValid);
+    if (isValid) {
+      // envio informações para o backend
+    }
+
+    // auth()
+    //   .createUserWithEmailAndPassword(email.trim(), password.trim())
+    //   .then(data => {
+    //     console.log("EMAIL E SENHA VÀLIDOS", data);
+
+    //     firestore()
+    //       .collection('Users')
+    //       .doc(data.user.uid)
+    //       .set({
+    //         username: username.trim(),
+    //         phone: phone.trim(),
+    //         cep: cep.trim(),
+    //         street: dataCep.street.trim(),
+    //         district: dataCep.district.trim(),
+    //         city: dataCep.city.trim(),
+    //         state: dataCep.state.trim(),
+    //         houseNumber: number.trim(),
+    //       })
+    //       .then((data) => {
+    //         console.log('User added!', data);
+    //       })
+    //       .catch((error) => {
+    //         console.error('Um erro aconteceu ao tentar cadastrar seu usuário. Por favor, tente novamente', error);
+    //       });
+    //   })
+    //   .catch(error => {
+    //     if (error.code === 'auth/email-already-in-use') {
+    //       console.log('O endereço de email já está em uso');
+    //     }
+
+    //     if (error.code === 'auth/invalid-email') {
+    //       console.log('O endereço de email informado é inválido');
+    //     }
+
+    //     console.error('Ops... Parece que não de.Por favor, tente novamente', error);
+    //   });
+    // navigation && navigation.goBack();
   };
 
   const onSignInButtonPress = () => {
@@ -54,30 +117,28 @@ export default ({ navigation }) => {
   const renderEditAvatarButton = () => (
     <Button
       style={styles.editAvatarButton}
-      status='basic' 
-      accessoryRight={PlusIcon} 
+      status='basic'
+      accessoryRight={PlusIcon}
     />
   );
 
   const LoadingIndicator = (props) => (
     <View style={[props.style, styles.indicator]}>
-      <Spinner size='small'/>
+      <Spinner size='small' />
     </View>
   );
 
-  const searchCep = () => {
+  const searchCep = (cep, setFieldValue) => {
     if (cep.length !== 9) return;
-    
+
     setLoadingCep(true);
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
       .then(res => res.json())
       .then(data => {
-        setDataCep({
-          logradouro: data.logradouro,
-          bairro: data.bairro,
-          localidade: data.localidade,
-          uf: data.uf,
-        });
+        setFieldValue('street', data.logradouro)
+        setFieldValue('district', data.bairro)
+        setFieldValue('city', data.localidade)
+        setFieldValue('state', data.uf)
 
         setLoadingCep(false);
       })
@@ -100,96 +161,131 @@ export default ({ navigation }) => {
           editButton={renderEditAvatarButton}
         />
       </View>
-      <Layout style={styles.formContainer} level='1'>
-        <Input
-          autoCapitalize='words'
-          maxLength={150}
-          placeholder='Nome de Usuário'
-          accessoryRight={PersonIcon}
-          value={userName}
-          onChangeText={setUserName}
-        />
-        <Input
-          style={styles.emailInput}
-          placeholder='Email'
-          maxLength={100}
-          accessoryRight={EmailIcon}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <Input
-          style={styles.passwordInput}
-          secureTextEntry={!passwordVisible}
-          placeholder='Senha'
-          maxLength={10}
-          accessoryRight={renderPasswordIcon}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <Input
-          style={styles.phoneInput}
-          keyboardType='phone-pad'
-          placeholder='Telefone (com DDD)'
-          maxLength={15}
-          accessoryRight={PhoneOutlineIcon}
-          value={phone}
-          onChangeText={(brutePhone) => setPhone(maskPhone(brutePhone))}
-        />
-        <Input
-          style={styles.cepInput}
-          keyboardType='numeric'
-          placeholder='CEP (informe o CEP e abaixo será completado)'
-          accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
-          value={cep}
-          maxLength={9}
-          onChangeText={(bruteCep) => setCep(maskCep(bruteCep))}
-          onBlur={searchCep}
-        />
-        <Input
-          style={styles.cepInput}
-          placeholder='Estado'
-          maxLength={2}
-          value={dataCep.uf}
-          onChangeText={(uf) => setDataCep({ uf })}
-        />
-        <Input
-          style={styles.cepInput}
-          placeholder='Cidade'
-          maxLength={100}
-          value={dataCep.localidade}
-          onChangeText={(localidade) => setDataCep({ localidade })}
-        />
-        <Input
-          style={styles.cepInput}
-          placeholder='Bairro'
-          maxLength={40}
-          value={dataCep.bairro}
-          onChangeText={(bairro) => setDataCep({ bairro })}
-        />
-        <View style={styles.streetAndNumberContainer}>
-          <Input
-            style={styles.streetInput}
-            placeholder='Rua'
-            maxLength={100}
-            value={dataCep.logradouro}
-            onChangeText={(logradouro) => setDataCep({ logradouro })}
-            />
-          <Input
-            style={styles.numberInput}
-            keyboardType='numeric'
-            placeholder='Número'
-            maxLength={5}
-            value={number}
-            onChangeText={setNumber}
-          />
-        </View>
-      </Layout>
-      <Button
-        style={styles.signUpButton}
-        size='giant'
-        onPress={onSignUpButtonPress}>
-        CADASTRAR
-      </Button>
+      <Formik initialValues={formInitialValues} validationSchema={fieldsValidationUserSchema} onSubmit={onSignUpButtonPress} >
+        {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
+          <>
+            <Layout style={styles.formContainer} level='1'>
+              <InputWithError
+                autoCapitalize='words'
+                maxLength={150}
+                placeholder='Nome de Usuário'
+                accessoryRight={PersonIcon}
+                value={values.username}
+                onChangeText={handleChange('username')}
+                onBlur={() => setFieldTouched('username')}
+                flags={{ error: errors?.username, touched: touched?.username }}
+              />
+              <InputWithError
+                style={styles.emailInput}
+                placeholder='Email'
+                maxLength={100}
+                accessoryRight={EmailIcon}
+                value={values.email}
+                onChangeText={handleChange('email')}
+                onBlur={() => setFieldTouched('email')}
+                flags={{ error: errors?.email, touched: touched?.email }}
+              />
+              <InputWithError
+                style={styles.passwordInput}
+                secureTextEntry={!passwordVisible}
+                placeholder='Senha'
+                maxLength={10}
+                accessoryRight={renderPasswordIcon}
+                value={values.password}
+                onChangeText={handleChange('password')}
+                onBlur={() => setFieldTouched('password')}
+                flags={{ error: errors?.password, touched: touched?.password }}
+              />
+              <InputWithError
+                style={styles.phoneInput}
+                keyboardType='phone-pad'
+                placeholder='Telefone (com DDD)'
+                maxLength={15}
+                accessoryRight={PhoneOutlineIcon}
+                value={values.phone}
+                onChangeText={(brutePhone) => setFieldValue('phone', maskPhone(brutePhone))}
+                onBlur={() => setFieldTouched('phone')}
+                flags={{ error: errors?.phone, touched: touched?.phone }}
+              />
+              <InputWithError
+                style={styles.cepInput}
+                keyboardType='numeric'
+                placeholder='CEP (informe o CEP antes de prosseguir)'
+                accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
+                value={values.cep}
+                maxLength={9}
+                onChangeText={(bruteCep) => setFieldValue('cep', maskCep(bruteCep))}
+                onBlur={() => {
+                  setFieldTouched('cep');
+                  !errors?.cep && searchCep(values.cep, setFieldValue)
+                }}
+                flags={{ error: errors?.cep, touched: touched?.cep }}
+              />
+              <InputWithError
+                style={styles.cepInput}
+                placeholder='Estado'
+                maxLength={2}
+                value={values.state}
+                onChangeText={handleChange('state')}
+                onBlur={() => setFieldTouched('state')}
+                flags={{ error: errors?.state, touched: touched?.state }}
+              />
+              <InputWithError
+                style={styles.cepInput}
+                placeholder='Cidade'
+                maxLength={100}
+                value={values.city}
+                onChangeText={handleChange('city')}
+                onBlur={() => setFieldTouched('city')}
+                flags={{ error: errors?.city, touched: touched?.city }}
+              />
+              <InputWithError
+                style={styles.cepInput}
+                placeholder='Bairro'
+                maxLength={40}
+                value={values.district}
+                onChangeText={handleChange('district')}
+                onBlur={() => setFieldTouched('district')}
+                flags={{ error: errors?.district, touched: touched?.district }}
+              />
+              <View style={styles.streetAndNumberContainer}>
+                <View style={styles.streetContainer}>
+                  <InputWithError
+                    style={styles.streetInput}
+                    placeholder='Rua'
+                    maxLength={100}
+                    value={values.street}
+                    onChangeText={handleChange('street')}
+                    onBlur={() => setFieldTouched('street')}
+                    flags={{ error: errors?.street, touched: touched?.street }}
+                  />
+                </View>
+                <View style={styles.houseNumberContainer}>
+                  <InputWithError
+                    style={styles.houseNumberInput}
+                    keyboardType='numeric'
+                    placeholder='Número'
+                    maxLength={5}
+                    value={values.houseNumber}
+                    onChangeText={handleChange('houseNumber')}
+                    onBlur={() => setFieldTouched('houseNumber')}
+                    flags={{ error: errors?.houseNumber, touched: touched?.houseNumber }}
+                  />
+                </View>
+              </View>
+            </Layout>
+            <Button
+              style={styles.signUpButton}
+              size='giant'
+              // disabled={!isValid}
+              onPress={handleSubmit}
+            >
+              CADASTRAR
+            </Button>
+          </>
+        )}
+      </Formik>
+
       <Button
         style={styles.signInButton}
         appearance='ghost'
@@ -237,23 +333,28 @@ const themedStyles = StyleService.create({
   passwordInput: {
     marginTop: 16,
   },
+  phoneInput: {
+    marginTop: 16,
+  },
   cepInput: {
     marginTop: 16,
   },
   streetAndNumberContainer: {
-    flex: 1,
-    flexDirection: 'row',    
+    flexDirection: 'row',
+  },
+  streetContainer: {
+    flex: 3,
+    flexDirection: 'column'
   },
   streetInput: {
-    flex: 3,
     marginTop: 16,
   },
-  numberInput: {
+  houseNumberContainer: {
     flex: 1,
     marginLeft: 16,
-    marginTop: 16,
+    flexDirection: 'column'
   },
-  phoneInput: {
+  houseNumberInput: {
     marginTop: 16,
   },
   signUpButton: {
@@ -265,4 +366,9 @@ const themedStyles = StyleService.create({
     marginVertical: 12,
     marginHorizontal: 16,
   },
+  errorInput: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'color-danger-600',
+  }
 });
