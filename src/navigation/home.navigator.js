@@ -8,13 +8,13 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { AuthNavigator } from './auth.navigator';
 import { HomeBottomNavigation } from '../scenes/home/home-bottom-navigation.component';
 import { HomeDrawer } from '../scenes/home/home-drawer.component';
-import { ProfileNavigator } from './profile.navigator';
+import { UsersNavigator } from './users.navigator';
 // import { LibrariesScreen } from '../scenes/libraries/libraries.component';
 
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-const initialTabRoute = 'Home';
+const initialTabRoute = 'Perfil';
 
 const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
 
@@ -30,10 +30,10 @@ const HomeTabsNavigator = () => (
     screenOptions={TabBarVisibilityOptions}
     initialRouteName={initialTabRoute}
     tabBar={props => <HomeBottomNavigation {...props} />}>
-    <BottomTab.Screen name='Home' component={ProfileNavigator} />
-    <BottomTab.Screen name='Favoritos' component={ProfileNavigator} />
-    <BottomTab.Screen name='Perfil' component={ProfileNavigator} />
-    <BottomTab.Screen name='Histórico' component={ProfileNavigator} />
+    <BottomTab.Screen name='Home' component={UsersNavigator} />
+    <BottomTab.Screen name='Favoritos' component={UsersNavigator} />
+    <BottomTab.Screen name='Perfil' component={UsersNavigator} />
+    <BottomTab.Screen name='Histórico' component={UsersNavigator} />
   </BottomTab.Navigator>
 );
 
