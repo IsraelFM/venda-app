@@ -6,7 +6,7 @@ import { showMessage } from 'react-native-flash-message';
 import { ImageOverlay } from './extra/image-overlay.component';
 import { EmailIcon } from './extra/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { sendPasswordResetEmail } from '../../firebase/users';
+import { sendPasswordResetEmail } from '../../firebase/auth';
 
 export default ({ navigation }) => {
   const [email, setEmail] = React.useState('');

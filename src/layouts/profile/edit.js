@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
 import {
   Button,
@@ -28,12 +28,12 @@ import { searchCep } from '../../utils/cep';
 import { maskCep, maskPhone } from '../../utils/mask';
 
 import userProfileValidationSchema from '../../validations/userProfile';
+import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
-
-  // RUN call firebase. Se não existir mostra cadastro
+  const formikRef = useRef();
   const formInitialValues = {
     username: '',
     email: '',
@@ -47,23 +47,41 @@ export default ({ navigation }) => {
     houseNumber: '',
   };
 
-  const onUserUpdateButtonPress = async (data, { resetForm }) => {
-    let createAuthUserResponse = null;
+  navigation.addListener('focus', async () => {
+    const getCurrentUserDocumentResponse = await getCurrentUserDocument();
 
-    createAuthUserResponse = await createUserWithEmailAndPassword({
-      email: data.email.trim(),
-      password: data.password.trim(),
-    });
-
-    if (createAuthUserResponse.error) {
+    if (!getCurrentUserDocument.error) {
+      formikRef.current?.setValues(getCurrentUserDocumentResponse);
+    } else {
       showMessage({
         message: 'Ops...',
-        description: createAuthUserResponse.error,
+        description: getCurrentUserDocumentResponse.error,
         type: 'danger',
         duration: 2000,
       });
+    }
+  });
 
-      return;
+  const onUserUpdateButtonPress = async (data) => {
+    let userFields = JSON.parse(JSON.stringify(data));
+
+    if (userFields.password.trim() === '') delete data.password;
+    delete userFields.email;
+
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
+    if (updateCurrentUserDocumentResponse.success) {
+      showMessage({
+        message: updateCurrentUserDocumentResponse.success,
+        type: 'success',
+        duration: 2000,
+      });
+    } else if (updateCurrentUserDocumentResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updateCurrentUserDocumentResponse.error,
+        type: 'danger',
+        duration: 2000,
+      });
     };
   };
 
@@ -101,7 +119,12 @@ export default ({ navigation }) => {
       <Divider />
 
       <KeyboardAvoidingView style={styles.container}>
-        <Formik initialValues={formInitialValues} validationSchema={userProfileValidationSchema} onSubmit={onUserUpdateButtonPress} >
+        <Formik
+          innerRef={formikRef}
+          initialValues={formInitialValues}
+          validationSchema={userProfileValidationSchema}
+          onSubmit={onUserUpdateButtonPress}
+        >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
               <Layout style={styles.formContainer} level='1'>
@@ -216,12 +239,12 @@ export default ({ navigation }) => {
                 </View>
               </Layout>
               <Button
-                style={styles.signUpButton}
+                style={styles.editButton}
                 size='giant'
                 disabled={!isValid}
                 onPress={handleSubmit}
               >
-                CADASTRAR
+                ATUALIZAR
               </Button>
             </>
           )}
@@ -276,13 +299,10 @@ const themedStyles = StyleService.create({
   houseNumberInput: {
     marginTop: 16,
   },
-  signUpButton: {
+  editButton: {
     borderRadius: 50,
     marginTop: 16,
-    marginHorizontal: 16,
-  },
-  signInButton: {
-    marginVertical: 12,
+    marginBottom: 16,
     marginHorizontal: 16,
   },
   errorInput: {

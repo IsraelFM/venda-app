@@ -23,7 +23,8 @@ import InputWithError from '../../components/input-and-error';
 import { searchCep } from '../../utils/cep';
 
 import userSignUpValidationSchema from '../../validations/userSignUp';
-import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
+import { createAuthWithEmailAndPassword } from '../../firebase/auth';
+import { createUserDocument } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -46,17 +47,15 @@ export default ({ navigation }) => {
   const styles = useStyleSheet(themedStyles);
 
   const onSignUpButtonPress = async (data, { resetForm }) => {
-    let createAuthUserResponse = null;
-
-    createAuthUserResponse = await createUserWithEmailAndPassword({
+    const createAuthEmailAndPasswordResponse = await createAuthWithEmailAndPassword({
       email: data.email.trim(),
       password: data.password.trim(),
     });
 
-    if (createAuthUserResponse.error) {
+    if (createAuthEmailAndPasswordResponse.error) {
       showMessage({
         message: 'Ops...',
-        description: createAuthUserResponse.error,
+        description: createAuthEmailAndPasswordResponse.error,
         type: 'danger',
         duration: 2000,
       });
@@ -65,7 +64,7 @@ export default ({ navigation }) => {
     }
 
     const createDocumentResponse = await createUserDocument({
-      userUid: createAuthUserResponse.user.uid,
+      userUid: createAuthEmailAndPasswordResponse.user.uid,
       userFields: {
         username: data.username.trim(),
         phone: data.phone.trim(),
@@ -86,9 +85,9 @@ export default ({ navigation }) => {
         duration: 2000,
       });
 
-      createAuthUserResponse.user.delete();
+      createAuthEmailAndPasswordResponse.user.delete();
     } else {
-      createAuthUserResponse.user.sendEmailVerification();
+      createAuthEmailAndPasswordResponse.user.sendEmailVerification();
 
       showMessage({
         message: createDocumentResponse.success,

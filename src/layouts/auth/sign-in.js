@@ -6,7 +6,7 @@ import { Formik } from 'formik';
 
 import { PersonIcon } from './extra/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { signInWithEmailAndPassword } from '../../firebase/users';
+import { signInWithEmailAndPassword } from '../../firebase/auth';
 import InputWithError from '../../components/input-and-error';
 import userSignInValidationSchema from '../../validations/userSignIn';
 

@@ -9,7 +9,7 @@ const userProfileValidationSchema = yup.object().shape({
     .string()
     .min(8, 'A senha precisa ter, no mínimo, 8 caracteres')
     .max(10, 'A senha pode ter no máximo 10 caracteres')
-    .required('Por favor, informe uma senha'),
+    .notRequired('Por favor, informe uma senha'),
   phone: yup
     .string()
     .max(15)
