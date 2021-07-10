@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { UsersScreen } from '../scenes/users/users.component';
+import { ProfileScreen } from '../scenes/profile/profile.component';
 
 const Stack = createStackNavigator();
 
-export const UsersNavigator = () => (
+export const ProfileNavigator = () => (
   <Stack.Navigator headerMode='none'>
-    <Stack.Screen name='Perfil' component={UsersScreen}/>
+    <Stack.Screen name='Perfil' component={ProfileScreen}/>
   </Stack.Navigator>
 );

@@ -1,35 +1,39 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
-import { Formik } from 'formik';
 import {
   Button,
-  Layout,
-  StyleService,
-  useStyleSheet,
-  Spinner,
+  Divider,
   Icon,
+  Layout,
+  Spinner,
+  StyleService,
+  TopNavigation,
+  TopNavigationAction,
+  useStyleSheet,
 } from '@ui-kitten/components';
 import { showMessage } from "react-native-flash-message";
+import { Formik } from 'formik';
 
+import { SafeAreaLayout } from '../../components/safe-area-layout.component';
+import { MenuIcon } from '../../components/icons';
+import { KeyboardAvoidingView } from '../../components/keyboard-view';
+import InputWithError from '../../components/input-and-error';
 import {
-  EmailIconOutline,
   PersonIconOutline,
   GlobeIconOutline,
   PhoneOutlineIcon,
+  EmailIconOutline,
 } from './extra/icons';
-import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { maskCep, maskPhone } from '../../utils/mask';
-import InputWithError from '../../components/input-and-error';
 import { searchCep } from '../../utils/cep';
+import { maskCep, maskPhone } from '../../utils/mask';
 
-import userSignUpValidationSchema from '../../validations/userSignUp';
-import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
+import userProfileValidationSchema from '../../validations/userProfile';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
-  const formikRef = useRef();
 
+  // RUN call firebase. Se não existir mostra cadastro
   const formInitialValues = {
     username: '',
     email: '',
@@ -41,11 +45,9 @@ export default ({ navigation }) => {
     city: '',
     state: '',
     houseNumber: '',
-  }
+  };
 
-  const styles = useStyleSheet(themedStyles);
-
-  const onSignUpButtonPress = async (data, { resetForm }) => {
+  const onUserUpdateButtonPress = async (data, { resetForm }) => {
     let createAuthUserResponse = null;
 
     createAuthUserResponse = await createUserWithEmailAndPassword({
@@ -62,52 +64,10 @@ export default ({ navigation }) => {
       });
 
       return;
-    }
-
-    const createDocumentResponse = await createUserDocument({
-      userUid: createAuthUserResponse.user.uid,
-      userFields: {
-        username: data.username.trim(),
-        phone: data.phone.trim(),
-        cep: data.cep.trim(),
-        state: data.state.trim(),
-        city: data.city.trim(),
-        district: data.district.trim(),
-        street: data.street.trim(),
-        houseNumber: data.houseNumber.trim(),
-      }
-    });
-
-    if (createDocumentResponse.error) {
-      showMessage({
-        message: 'Ops...',
-        description: createDocumentResponse.error,
-        type: 'danger',
-        duration: 2000,
-      });
-
-      createAuthUserResponse.user.delete();
-    } else {
-      createAuthUserResponse.user.sendEmailVerification();
-
-      showMessage({
-        message: createDocumentResponse.success,
-        type: 'success',
-        duration: 2000,
-      });
-
-      resetForm({});
-      onSignInButtonPress();
-    }
+    };
   };
 
-  const onSignInButtonPress = () => {
-    navigation && navigation.navigate('Login');
-  };
-
-  const onPasswordIconPress = () => {
-    setPasswordVisible(!passwordVisible);
-  };
+  const styles = useStyleSheet(themedStyles);
 
   const LoadingIndicator = (props) => (
     <View style={[props.style, styles.indicator]}>
@@ -115,26 +75,33 @@ export default ({ navigation }) => {
     </View>
   );
 
+  const onPasswordIconPress = () => setPasswordVisible(!passwordVisible);
+
   const renderPasswordIcon = (props) => (
     <TouchableWithoutFeedback onPress={onPasswordIconPress}>
       <Icon {...props} name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} />
     </TouchableWithoutFeedback>
   );
 
-  navigation.addListener('focus', () => {
-    formikRef.current?.setErrors({});
-    formikRef.current?.setTouched({});
-  });
+  const renderDrawerAction = () => (
+    <TopNavigationAction
+      icon={MenuIcon}
+      onPress={navigation.toggleDrawer}
+    />
+  );
 
   return (
-    <>
+    <SafeAreaLayout
+      style={styles.safeArea}
+      insets='top'>
+      <TopNavigation
+        title='Venda Livre'
+        accessoryLeft={renderDrawerAction}
+      />
+      <Divider />
+
       <KeyboardAvoidingView style={styles.container}>
-        <Formik
-          innerRef={formikRef}
-          initialValues={formInitialValues}
-          validationSchema={userSignUpValidationSchema}
-          onSubmit={onSignUpButtonPress}
-        >
+        <Formik initialValues={formInitialValues} validationSchema={userProfileValidationSchema} onSubmit={onUserUpdateButtonPress} >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
               <Layout style={styles.formContainer} level='1'>
@@ -149,14 +116,12 @@ export default ({ navigation }) => {
                   flags={{ error: errors?.username, touched: touched?.username }}
                 />
                 <InputWithError
-                  style={styles.emailInput}
                   placeholder='Email'
+                  style={styles.emailInput}
                   maxLength={100}
                   accessoryRight={EmailIconOutline}
                   value={values.email}
-                  onChangeText={handleChange('email')}
-                  onBlur={() => setFieldTouched('email')}
-                  flags={{ error: errors?.email, touched: touched?.email }}
+                  disabled={true}
                 />
                 <InputWithError
                   style={styles.passwordInput}
@@ -261,28 +226,18 @@ export default ({ navigation }) => {
             </>
           )}
         </Formik>
-
-        <Button
-          style={styles.signInButton}
-          appearance='ghost'
-          status='basic'
-          onPress={onSignInButtonPress}>
-          Já tem uma conta? Faça login
-        </Button>
       </KeyboardAvoidingView>
-    </>
+
+    </SafeAreaLayout>
   );
 };
 
 const themedStyles = StyleService.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     backgroundColor: 'color-success-400',
-  },
-  headerContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 150,
-    backgroundColor: 'color-success-transparent-100',
   },
   formContainer: {
     flex: 1,

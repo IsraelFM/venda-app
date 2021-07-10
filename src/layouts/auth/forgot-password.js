@@ -5,7 +5,7 @@ import { showMessage } from 'react-native-flash-message';
 
 import { ImageOverlay } from './extra/image-overlay.component';
 import { EmailIcon } from './extra/icons';
-import { KeyboardAvoidingView } from './extra/3rd-party';
+import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import { sendPasswordResetEmail } from '../../firebase/users';
 
 export default ({ navigation }) => {

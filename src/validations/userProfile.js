@@ -1,15 +1,10 @@
 import * as yup from 'yup';
 
-const userSignUpValidationSchema = yup.object().shape({
+const userProfileValidationSchema = yup.object().shape({
   username: yup
     .string()
     .max(150)
     .required('Por favor, informe seu nome'),
-  email: yup
-    .string()
-    .max(100)
-    .email('Email inválido. Insira um email um email no formato seu@email.com')
-    .required('Informe um email para logar no app'),
   password: yup
     .string()
     .min(8, 'A senha precisa ter, no mínimo, 8 caracteres')
@@ -51,4 +46,4 @@ const userSignUpValidationSchema = yup.object().shape({
     .notRequired('Qual o número da sua residência?'),
 });
 
-export default userSignUpValidationSchema;
+export default userProfileValidationSchema;
