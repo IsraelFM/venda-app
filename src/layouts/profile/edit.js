@@ -1,36 +1,45 @@
 import React, { useRef } from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
-import { Formik } from 'formik';
 import {
   Button,
-  Layout,
-  StyleService,
-  useStyleSheet,
-  Spinner,
+  Divider,
   Icon,
+  Layout,
+  Spinner,
+  StyleService,
+  TopNavigation,
+  TopNavigationAction,
+  useStyleSheet,
 } from '@ui-kitten/components';
 import { showMessage } from "react-native-flash-message";
+import { Formik } from 'formik';
 
+import { SafeAreaLayout } from '../../components/safe-area-layout.component';
+import { MenuIcon } from '../../components/icons';
+import { KeyboardAvoidingView } from '../../components/keyboard-view';
+import InputWithError from '../../components/input-and-error';
+import { ConfirmModal } from '../../components/modal';
 import {
-  EmailIconOutline,
   PersonIconOutline,
   GlobeIconOutline,
   PhoneOutlineIcon,
+  EmailIconOutline,
 } from './extra/icons';
-import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { maskCep, maskPhone } from '../../utils/mask';
-import InputWithError from '../../components/input-and-error';
 import { searchCep } from '../../utils/cep';
+import { maskCep, maskPhone } from '../../utils/mask';
 
-import userSignUpValidationSchema from '../../validations/userSignUp';
-import { createAuthWithEmailAndPassword } from '../../firebase/auth';
-import { createUserDocument } from '../../firebase/users';
+import userProfileValidationSchema from '../../validations/userProfile';
+import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
+import { updatePassword } from '../../firebase/auth';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [oldPasswordVisible, setOldPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
-  const formikRef = useRef();
+  const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
+  const [oldPassword, setOldPassword] = React.useState('');
 
+  const formikRef = useRef();
   const formInitialValues = {
     username: '',
     email: '',
@@ -42,71 +51,86 @@ export default ({ navigation }) => {
     city: '',
     state: '',
     houseNumber: '',
-  }
+  };
 
-  const styles = useStyleSheet(themedStyles);
+  navigation.addListener('focus', async () => {
+    const getCurrentUserDocumentResponse = await getCurrentUserDocument();
 
-  const onSignUpButtonPress = async (data, { resetForm }) => {
-    const createAuthEmailAndPasswordResponse = await createAuthWithEmailAndPassword({
-      email: data.email.trim(),
-      password: data.password.trim(),
-    });
-
-    if (createAuthEmailAndPasswordResponse.error) {
+    if (!getCurrentUserDocument.error) {
+      formikRef.current?.setValues(getCurrentUserDocumentResponse);
+    } else {
       showMessage({
         message: 'Ops...',
-        description: createAuthEmailAndPasswordResponse.error,
+        description: getCurrentUserDocumentResponse.error,
         type: 'danger',
         duration: 2000,
+        floating: true
+      });
+    }
+  });
+
+  const updateProfile = async () => {
+    const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
+
+    delete userFields.password;
+    delete userFields.email;
+
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
+
+    if (updateCurrentUserDocumentResponse.success) {
+      showMessage({
+        message: updateCurrentUserDocumentResponse.success,
+        type: 'success',
+        duration: 2000,
+        floating: true
+      });
+
+      formikRef.current?.setFieldValue('password', '');
+    } else if (updateCurrentUserDocumentResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updateCurrentUserDocumentResponse.error,
+        type: 'danger',
+        duration: 2000,
+        floating: true
+      });
+    };
+  };
+
+  const confirmPasswordModal = async () => {
+    const updatePasswordResponse = await updatePassword({
+      credentials: {
+        oldPassword: oldPassword,
+        password: formikRef.current?.values.password,
+        email: formikRef.current?.values.email,
+      }
+    });
+
+    if (updatePasswordResponse?.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updatePasswordResponse.error,
+        type: 'danger',
+        duration: 2000,
+        floating: true
       });
 
       return;
     }
+    toggleModalVisibility();
 
-    const createDocumentResponse = await createUserDocument({
-      userUid: createAuthEmailAndPasswordResponse.user.uid,
-      userFields: {
-        username: data.username.trim(),
-        phone: data.phone.trim(),
-        cep: data.cep.trim(),
-        state: data.state.trim(),
-        city: data.city.trim(),
-        district: data.district.trim(),
-        street: data.street.trim(),
-        houseNumber: data.houseNumber.trim(),
-      }
-    });
+    await updateProfile();
+  };
 
-    if (createDocumentResponse.error) {
-      showMessage({
-        message: 'Ops...',
-        description: createDocumentResponse.error,
-        type: 'danger',
-        duration: 2000,
-      });
-
-      createAuthEmailAndPasswordResponse.user.delete();
+  const handleProfileSubmit = () => {
+    if (formikRef.current?.values?.password?.trim() !== '') {
+      setConfirmPasswordModalVisible(true);
     } else {
-      createAuthEmailAndPasswordResponse.user.sendEmailVerification();
-
-      showMessage({
-        message: createDocumentResponse.success,
-        type: 'success',
-        duration: 2000,
-      });
-
-      resetForm({});
-      onSignInButtonPress();
+      updateProfile();
     }
   };
 
-  const onSignInButtonPress = () => {
-    navigation && navigation.navigate('Login');
-  };
-
-  const onPasswordIconPress = () => {
-    setPasswordVisible(!passwordVisible);
-  };
+  const styles = useStyleSheet(themedStyles);
 
   const LoadingIndicator = (props) => (
     <View style={[props.style, styles.indicator]}>
@@ -114,25 +138,39 @@ export default ({ navigation }) => {
     </View>
   );
 
-  const renderPasswordIcon = (props) => (
-    <TouchableWithoutFeedback onPress={onPasswordIconPress}>
-      <Icon {...props} name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} />
+  const onPasswordIconPress = () => setPasswordVisible(!passwordVisible);
+  const onOldPasswordIconPress = () => setOldPasswordVisible(!oldPasswordVisible);
+  const toggleModalVisibility = () => setConfirmPasswordModalVisible(!confirmPasswordModalVisible);
+
+  const renderPasswordIcon = (props, passwordStateWatch, passwordIconPress) => (
+    <TouchableWithoutFeedback onPress={passwordIconPress}>
+      <Icon {...props} name={passwordStateWatch ? 'eye-off-outline' : 'eye-outline'} />
     </TouchableWithoutFeedback>
   );
 
-  navigation.addListener('focus', () => {
-    formikRef.current?.setErrors({});
-    formikRef.current?.setTouched({});
-  });
+  const renderDrawerAction = () => (
+    <TopNavigationAction
+      icon={MenuIcon}
+      onPress={navigation.toggleDrawer}
+    />
+  );
 
   return (
-    <>
+    <SafeAreaLayout
+      style={styles.safeArea}
+      insets='top'>
+      <TopNavigation
+        title='Venda Livre'
+        accessoryLeft={renderDrawerAction}
+      />
+      <Divider />
+
       <KeyboardAvoidingView style={styles.container}>
         <Formik
           innerRef={formikRef}
           initialValues={formInitialValues}
-          validationSchema={userSignUpValidationSchema}
-          onSubmit={onSignUpButtonPress}
+          validationSchema={userProfileValidationSchema}
+          onSubmit={handleProfileSubmit}
         >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
@@ -148,21 +186,19 @@ export default ({ navigation }) => {
                   flags={{ error: errors?.username, touched: touched?.username }}
                 />
                 <InputWithError
-                  style={styles.emailInput}
                   placeholder='Email'
+                  style={styles.emailInput}
                   maxLength={100}
                   accessoryRight={EmailIconOutline}
                   value={values.email}
-                  onChangeText={handleChange('email')}
-                  onBlur={() => setFieldTouched('email')}
-                  flags={{ error: errors?.email, touched: touched?.email }}
+                  disabled={true}
                 />
                 <InputWithError
                   style={styles.passwordInput}
                   secureTextEntry={!passwordVisible}
-                  placeholder='Senha'
+                  placeholder='Nova senha'
                   maxLength={10}
-                  accessoryRight={renderPasswordIcon}
+                  accessoryRight={(props) => renderPasswordIcon(props, passwordVisible, onPasswordIconPress)}
                   value={values.password}
                   onChangeText={handleChange('password')}
                   onBlur={() => setFieldTouched('password')}
@@ -250,38 +286,44 @@ export default ({ navigation }) => {
                 </View>
               </Layout>
               <Button
-                style={styles.signUpButton}
+                style={styles.editButton}
                 size='giant'
                 disabled={!isValid}
                 onPress={handleSubmit}
               >
-                CADASTRAR
+                ATUALIZAR
               </Button>
             </>
           )}
         </Formik>
-
-        <Button
-          style={styles.signInButton}
-          appearance='ghost'
-          status='basic'
-          onPress={onSignInButtonPress}>
-          Já tem uma conta? Faça login
-        </Button>
       </KeyboardAvoidingView>
-    </>
+
+      <ConfirmModal
+        visible={confirmPasswordModalVisible}
+        title='Qual a sua senha antiga?'
+        description='Precisamos que informe sua antiga senha como uma medida de segurança para alterá-la'
+        onGotItButtonPress={confirmPasswordModal}
+        onCancelItButtonPress={toggleModalVisibility}
+        elements={(
+          <InputWithError
+            onChangeText={setOldPassword}
+            secureTextEntry={!oldPasswordVisible}
+            placeholder='Senha antiga'
+            maxLength={10}
+            accessoryRight={(props) => renderPasswordIcon(props, oldPasswordVisible, onOldPasswordIconPress)}
+          />
+        )}
+      />
+    </SafeAreaLayout>
   );
 };
 
 const themedStyles = StyleService.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     backgroundColor: 'color-success-400',
-  },
-  headerContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 150,
-    backgroundColor: 'color-success-transparent-100',
   },
   formContainer: {
     flex: 1,
@@ -320,13 +362,10 @@ const themedStyles = StyleService.create({
   houseNumberInput: {
     marginTop: 16,
   },
-  signUpButton: {
+  editButton: {
     borderRadius: 50,
     marginTop: 16,
-    marginHorizontal: 16,
-  },
-  signInButton: {
-    marginVertical: 12,
+    marginBottom: 16,
     marginHorizontal: 16,
   },
   errorInput: {

@@ -1,10 +1,11 @@
 import React from 'react';
-import { Text, View } from 'react-native'
+import { createStackNavigator } from '@react-navigation/stack';
+import { ProfileScreen } from '../scenes/profile/profile.component';
 
-export const ProfileNavigator = () => {
-    return (
-      <View>
-        <Text> Meu perfil </Text>
-      </View>
-    )
-}
+const Stack = createStackNavigator();
+
+export const ProfileNavigator = () => (
+  <Stack.Navigator headerMode='none'>
+    <Stack.Screen name='Perfil' component={ProfileScreen}/>
+  </Stack.Navigator>
+);

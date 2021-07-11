@@ -14,7 +14,7 @@ import { ProfileNavigator } from './profile.navigator';
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-const initialTabRoute = 'Home';
+const initialTabRoute = 'Perfil';
 
 const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
 
