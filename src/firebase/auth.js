@@ -4,6 +4,7 @@ export const {
   createAuthWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  updatePassword,
 } = {
   createAuthWithEmailAndPassword: async ({
     email,
@@ -86,5 +87,19 @@ export const {
         error: 'Um erro aconteceu ao tentar recuperar sua senha. Por favor, tente novamente'
       }
     }
-  }
+  },
+  updatePassword: async ({ credentials }) => {
+    try {
+      if (credentials.oldPassword) {
+        const credentialForEmail = auth.EmailAuthProvider.credential(credentials.email, credentials.oldPassword);
+
+        await auth().currentUser.reauthenticateWithCredential(credentialForEmail);
+        await auth().currentUser.updatePassword(credentials.password);
+      }
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao atualizar a sua senha. Estamos contactando o suporte'
+      }
+    }
+  },
 }

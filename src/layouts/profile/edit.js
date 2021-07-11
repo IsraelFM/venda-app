@@ -18,6 +18,7 @@ import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import InputWithError from '../../components/input-and-error';
+import { ConfirmModal } from '../../components/modal';
 import {
   PersonIconOutline,
   GlobeIconOutline,
@@ -29,10 +30,15 @@ import { maskCep, maskPhone } from '../../utils/mask';
 
 import userProfileValidationSchema from '../../validations/userProfile';
 import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
+import { updatePassword } from '../../firebase/auth';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [oldPasswordVisible, setOldPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
+  const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
+  const [oldPassword, setOldPassword] = React.useState('');
+
   const formikRef = useRef();
   const formInitialValues = {
     username: '',
@@ -58,31 +64,70 @@ export default ({ navigation }) => {
         description: getCurrentUserDocumentResponse.error,
         type: 'danger',
         duration: 2000,
+        floating: true
       });
     }
   });
 
-  const onUserUpdateButtonPress = async (data) => {
-    let userFields = JSON.parse(JSON.stringify(data));
+  const updateProfile = async () => {
+    const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
 
-    if (userFields.password.trim() === '') delete data.password;
+    delete userFields.password;
     delete userFields.email;
 
     const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
+
     if (updateCurrentUserDocumentResponse.success) {
       showMessage({
         message: updateCurrentUserDocumentResponse.success,
         type: 'success',
         duration: 2000,
+        floating: true
       });
+
+      formikRef.current?.setFieldValue('password', '');
     } else if (updateCurrentUserDocumentResponse.error) {
       showMessage({
         message: 'Ops...',
         description: updateCurrentUserDocumentResponse.error,
         type: 'danger',
         duration: 2000,
+        floating: true
       });
     };
+  };
+
+  const confirmPasswordModal = async () => {
+    const updatePasswordResponse = await updatePassword({
+      credentials: {
+        oldPassword: oldPassword,
+        password: formikRef.current?.values.password,
+        email: formikRef.current?.values.email,
+      }
+    });
+
+    if (updatePasswordResponse?.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updatePasswordResponse.error,
+        type: 'danger',
+        duration: 2000,
+        floating: true
+      });
+
+      return;
+    }
+    toggleModalVisibility();
+
+    await updateProfile();
+  };
+
+  const handleProfileSubmit = () => {
+    if (formikRef.current?.values?.password?.trim() !== '') {
+      setConfirmPasswordModalVisible(true);
+    } else {
+      updateProfile();
+    }
   };
 
   const styles = useStyleSheet(themedStyles);
@@ -94,10 +139,12 @@ export default ({ navigation }) => {
   );
 
   const onPasswordIconPress = () => setPasswordVisible(!passwordVisible);
+  const onOldPasswordIconPress = () => setOldPasswordVisible(!oldPasswordVisible);
+  const toggleModalVisibility = () => setConfirmPasswordModalVisible(!confirmPasswordModalVisible);
 
-  const renderPasswordIcon = (props) => (
-    <TouchableWithoutFeedback onPress={onPasswordIconPress}>
-      <Icon {...props} name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} />
+  const renderPasswordIcon = (props, passwordStateWatch, passwordIconPress) => (
+    <TouchableWithoutFeedback onPress={passwordIconPress}>
+      <Icon {...props} name={passwordStateWatch ? 'eye-off-outline' : 'eye-outline'} />
     </TouchableWithoutFeedback>
   );
 
@@ -123,7 +170,7 @@ export default ({ navigation }) => {
           innerRef={formikRef}
           initialValues={formInitialValues}
           validationSchema={userProfileValidationSchema}
-          onSubmit={onUserUpdateButtonPress}
+          onSubmit={handleProfileSubmit}
         >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
@@ -149,9 +196,9 @@ export default ({ navigation }) => {
                 <InputWithError
                   style={styles.passwordInput}
                   secureTextEntry={!passwordVisible}
-                  placeholder='Senha'
+                  placeholder='Nova senha'
                   maxLength={10}
-                  accessoryRight={renderPasswordIcon}
+                  accessoryRight={(props) => renderPasswordIcon(props, passwordVisible, onPasswordIconPress)}
                   value={values.password}
                   onChangeText={handleChange('password')}
                   onBlur={() => setFieldTouched('password')}
@@ -251,6 +298,22 @@ export default ({ navigation }) => {
         </Formik>
       </KeyboardAvoidingView>
 
+      <ConfirmModal
+        visible={confirmPasswordModalVisible}
+        title='Qual a sua senha antiga?'
+        description='Precisamos que informe sua antiga senha como uma medida de segurança para alterá-la'
+        onGotItButtonPress={confirmPasswordModal}
+        onCancelItButtonPress={toggleModalVisibility}
+        elements={(
+          <InputWithError
+            onChangeText={setOldPassword}
+            secureTextEntry={!oldPasswordVisible}
+            placeholder='Senha antiga'
+            maxLength={10}
+            accessoryRight={(props) => renderPasswordIcon(props, oldPasswordVisible, onOldPasswordIconPress)}
+          />
+        )}
+      />
     </SafeAreaLayout>
   );
 };

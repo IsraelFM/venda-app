@@ -50,8 +50,6 @@ export const {
         .doc(auth().currentUser.uid)
         .update(userFields);
 
-      if (userFields.password) await auth().currentUser.updatePassword(userFields.password);
-
       return {
         success: 'Perfil atualizado'
       }
