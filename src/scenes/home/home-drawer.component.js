@@ -37,6 +37,14 @@ export const HomeDrawer = ({ navigation }) => {
         navigation.navigate('Auth');
       },
     },  
+    {
+      title: 'Produtos',
+      icon: PersonIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Product');
+      },
+    },  
   ];
 
   const renderHeader = () => (
