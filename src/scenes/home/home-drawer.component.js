@@ -45,6 +45,14 @@ export const HomeDrawer = ({ navigation }) => {
         navigation.navigate('Product');
       },
     },  
+    {
+      title: 'Cadastrar Produtos',
+      icon: PersonIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Product');
+      },
+    },  
   ];
 
   const renderHeader = () => (

@@ -99,11 +99,8 @@ export default ({ navigation }) => {
     delete rawUserFields.description 
     delete rawUserFields.price 
     const userFields = {products, ...rawUserFields}
-    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument(userFields);
-    console.log(userFields)
-    console.log(updateCurrentUserDocumentResponse)
-    const teste = await getCurrentUserDocument()
-    console.log(teste)
+
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({userFields});
     if (updateCurrentUserDocumentResponse.success) {
       showMessage({
         message: updateCurrentUserDocumentResponse.success,
