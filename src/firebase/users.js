@@ -1,4 +1,5 @@
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 
 export const {
@@ -43,17 +44,33 @@ export const {
       }
     }
   },
-  updateCurrentUserDocument: async ({ userFields }) => {
+  updateCurrentUserDocument: async ({ userFields, image = false, name = null }) => {
     try {
       console.log('update',userFields)
       await firestore()
         .collection('Users')
         .doc(auth().currentUser.uid)
         .update(userFields);
+
+      if (image && name){
+        const ext = image.split('.').pop();
+        console.log(ext)
+        console.log(image)
+        const reference = `${new Date().getTime()}.${ext}`
+        await storage().ref(reference).putFile(image)
+        const uri = await storage().ref(reference).getDownloadURL()
+        userFields.products[name].uri = uri
+        console.log(uri)
+        await firestore()
+        .collection('Users')
+        .doc(auth().currentUser.uid)
+        .update(userFields);
+      }
       return {
         success: 'Perfil atualizado'
       }
     } catch (error) {
+      console.log(error)
       return {
         error: 'Um erro aconteceu ao atualizar seu perfil. Estamos contactando o suporte'
       }

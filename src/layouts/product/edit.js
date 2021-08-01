@@ -89,18 +89,19 @@ export default ({ navigation }) => {
 
   const createProduct = async (image) => {
     const rawUserFields = JSON.parse(JSON.stringify(formikRef.current?.values));
-    const products = {}
+    const products = rawUserFields.products || {}
     products[rawUserFields.name] = {
       description: rawUserFields.description,
       price: rawUserFields.price,
       image
     }
+    const name = rawUserFields.name 
     delete rawUserFields.name 
     delete rawUserFields.description 
     delete rawUserFields.price 
     const userFields = {products, ...rawUserFields}
 
-    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({userFields});
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({userFields, image: image, name});
     if (updateCurrentUserDocumentResponse.success) {
       showMessage({
         message: updateCurrentUserDocumentResponse.success,
