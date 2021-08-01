@@ -24,6 +24,8 @@ import { maskCurrency } from '../../utils/mask';
 import ProductValidationSchema from '../../validations/Product';
 import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
 import { updatePassword } from '../../firebase/auth';
+import {launchImageLibrary} from 'react-native-image-picker';
+
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -31,6 +33,7 @@ export default ({ navigation }) => {
   const [loadingCep, setLoadingCep] = React.useState(false);
   const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
   const [oldPassword, setOldPassword] = React.useState('');
+
 
   const formikRef = useRef();
   const formInitialValues = {
@@ -54,6 +57,32 @@ export default ({ navigation }) => {
       });
     }
   });
+
+  const selectImage = () => {
+    let options = {
+      title: 'You can choose one image',
+      maxWidth: 256,
+      maxHeight: 256,
+      storageOptions: {
+        skipBackup: true
+      }
+    };
+
+    launchImageLibrary(options, response => {
+      console.log({ response });
+
+      if (response.didCancel) {
+        console.log('User cancelled photo picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        let source = { uri: response.uri };
+        console.log({ source });
+      }
+    });
+  }
 
   const createProduct = async () => {
     // const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
@@ -192,6 +221,13 @@ export default ({ navigation }) => {
                   flags={{ error: errors?.price, touched: touched?.price }}
                 />
                 </Layout>
+              <Button
+                style={styles.editButton}
+                size='giant'
+                onPress={selectImage}
+              >
+                Select Image
+              </Button>
               <Button
                 style={styles.editButton}
                 size='giant'
