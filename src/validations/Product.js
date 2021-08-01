@@ -9,7 +9,7 @@ const ProductValidationSchema = yup.object().shape({
     .string()
     .max(500)
     .required('Por favor, informe a descrição do produto'),
-  prince: yup
+  price: yup
     .string()
     .max(10)
     .transform(price => {

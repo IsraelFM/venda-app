@@ -33,6 +33,7 @@ export default ({ navigation }) => {
   const [loadingCep, setLoadingCep] = React.useState(false);
   const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
   const [oldPassword, setOldPassword] = React.useState('');
+  const [image, setImage] = React.useState(null);
 
 
   const formikRef = useRef();
@@ -44,7 +45,7 @@ export default ({ navigation }) => {
 
   navigation.addListener('focus', async () => {
     const getCurrentUserDocumentResponse = await getCurrentUserDocument();
-
+    console.log(getCurrentUserDocumentResponse)
     if (!getCurrentUserDocument.error) {
       formikRef.current?.setValues(getCurrentUserDocumentResponse);
     } else {
@@ -61,6 +62,7 @@ export default ({ navigation }) => {
   const selectImage = () => {
     let options = {
       title: 'You can choose one image',
+      mediaType: 'photo',
       maxWidth: 256,
       maxHeight: 256,
       storageOptions: {
@@ -78,41 +80,47 @@ export default ({ navigation }) => {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
+        console.log( response.assets[0].uri)
         let source = { uri: response.uri };
-        console.log({ source });
+        setImage(response.assets[0].uri)
       }
     });
   }
 
-  const createProduct = async () => {
-    // const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
+  const createProduct = async (image) => {
+    const rawUserFields = JSON.parse(JSON.stringify(formikRef.current?.values));
+    const products = {}
+    products[rawUserFields.name] = {
+      description: rawUserFields.description,
+      price: rawUserFields.price,
+      image
+    }
+    delete rawUserFields.name 
+    delete rawUserFields.description 
+    delete rawUserFields.price 
+    const userFields = {products, ...rawUserFields}
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument(userFields);
+    console.log(userFields)
+    console.log(updateCurrentUserDocumentResponse)
+    const teste = await getCurrentUserDocument()
+    console.log(teste)
+    if (updateCurrentUserDocumentResponse.success) {
+      showMessage({
+        message: updateCurrentUserDocumentResponse.success,
+        type: 'success',
+        duration: 2000,
+        floating: true
+      });
 
-    showMessage({
-      message: updateCurrentUserDocumentResponse.success,
-      type: 'success',
-      duration: 2000,
-      floating: true
-    });
-    // const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
-
-    // if (updateCurrentUserDocumentResponse.success) {
-    //   showMessage({
-    //     message: updateCurrentUserDocumentResponse.success,
-    //     type: 'success',
-    //     duration: 2000,
-    //     floating: true
-    //   });
-
-    //   formikRef.current?.setFieldValue('password', '');
-    // } else if (updateCurrentUserDocumentResponse.error) {
-    //   showMessage({
-    //     message: 'Ops...',
-    //     description: updateCurrentUserDocumentResponse.error,
-    //     type: 'danger',
-    //     duration: 2000,
-    //     floating: true
-    //   });
-    // };
+    } else if (updateCurrentUserDocumentResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updateCurrentUserDocumentResponse.error,
+        type: 'danger',
+        duration: 2000,
+        floating: true
+      });
+    };
   };
 
   const confirmPasswordModal = async () => {
@@ -140,9 +148,10 @@ export default ({ navigation }) => {
     await createProduct();
   };
 
-  const handleProfileSubmit = () => {
-      createProduct();
-    
+  const handleProfileSubmit = (e) => {
+      if(image){
+        createProduct(image);
+      }
   };
 
   const styles = useStyleSheet(themedStyles);

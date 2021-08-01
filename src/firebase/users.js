@@ -43,13 +43,12 @@ export const {
       }
     }
   },
-  updateCurrentUserDocument: async ({ userFields }) => {
+  updateCurrentUserDocument: async ({ userFields, image = null }) => {
     try {
       await firestore()
         .collection('Users')
         .doc(auth().currentUser.uid)
-        .update(userFields);
-
+        .update({image, ...userFields});
       return {
         success: 'Perfil atualizado'
       }
