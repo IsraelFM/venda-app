@@ -18,17 +18,10 @@ import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import InputWithError from '../../components/input-and-error';
-import { ConfirmModal } from '../../components/modal';
-import {
-  PersonIconOutline,
-  GlobeIconOutline,
-  PhoneOutlineIcon,
-  EmailIconOutline,
-} from './extra/icons';
-import { searchCep } from '../../utils/cep';
-import { maskCep, maskPhone } from '../../utils/mask';
+import {CubeIconOutline,FileTextIconOutline} from './extra/icons';
+import { maskCurrency } from '../../utils/mask';
 
-import userProfileValidationSchema from '../../validations/userProfile';
+import ProductValidationSchema from '../../validations/Product';
 import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
 import { updatePassword } from '../../firebase/auth';
 
@@ -41,16 +34,9 @@ export default ({ navigation }) => {
 
   const formikRef = useRef();
   const formInitialValues = {
-    username: '',
-    email: '',
-    password: '',
-    phone: '',
-    cep: '',
-    street: '',
-    district: '',
-    city: '',
-    state: '',
-    houseNumber: '',
+    name: '',
+    description: '',
+    price: '',
   };
 
   navigation.addListener('focus', async () => {
@@ -69,32 +55,35 @@ export default ({ navigation }) => {
     }
   });
 
-  const updateProfile = async () => {
-    const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
+  const createProduct = async () => {
+    // const userFields = JSON.parse(JSON.stringify(formikRef.current?.values));
 
-    delete userFields.password;
-    delete userFields.email;
+    showMessage({
+      message: updateCurrentUserDocumentResponse.success,
+      type: 'success',
+      duration: 2000,
+      floating: true
+    });
+    // const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
 
-    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields });
+    // if (updateCurrentUserDocumentResponse.success) {
+    //   showMessage({
+    //     message: updateCurrentUserDocumentResponse.success,
+    //     type: 'success',
+    //     duration: 2000,
+    //     floating: true
+    //   });
 
-    if (updateCurrentUserDocumentResponse.success) {
-      showMessage({
-        message: updateCurrentUserDocumentResponse.success,
-        type: 'success',
-        duration: 2000,
-        floating: true
-      });
-
-      formikRef.current?.setFieldValue('password', '');
-    } else if (updateCurrentUserDocumentResponse.error) {
-      showMessage({
-        message: 'Ops...',
-        description: updateCurrentUserDocumentResponse.error,
-        type: 'danger',
-        duration: 2000,
-        floating: true
-      });
-    };
+    //   formikRef.current?.setFieldValue('password', '');
+    // } else if (updateCurrentUserDocumentResponse.error) {
+    //   showMessage({
+    //     message: 'Ops...',
+    //     description: updateCurrentUserDocumentResponse.error,
+    //     type: 'danger',
+    //     duration: 2000,
+    //     floating: true
+    //   });
+    // };
   };
 
   const confirmPasswordModal = async () => {
@@ -119,15 +108,12 @@ export default ({ navigation }) => {
     }
     toggleModalVisibility();
 
-    await updateProfile();
+    await createProduct();
   };
 
   const handleProfileSubmit = () => {
-    if (formikRef.current?.values?.password?.trim() !== '') {
-      setConfirmPasswordModalVisible(true);
-    } else {
-      updateProfile();
-    }
+      createProduct();
+    
   };
 
   const styles = useStyleSheet(themedStyles);
@@ -169,7 +155,7 @@ export default ({ navigation }) => {
         <Formik
           innerRef={formikRef}
           initialValues={formInitialValues}
-          validationSchema={userProfileValidationSchema}
+          validationSchema={ProductValidationSchema}
           onSubmit={handleProfileSubmit}
         >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
@@ -177,143 +163,47 @@ export default ({ navigation }) => {
               <Layout style={styles.formContainer} level='1'>
                 <InputWithError
                   autoCapitalize='words'
-                  maxLength={150}
-                  placeholder='Nome de Usuário'
-                  accessoryRight={PersonIconOutline}
-                  value={values.username}
-                  onChangeText={handleChange('username')}
-                  onBlur={() => setFieldTouched('username')}
-                  flags={{ error: errors?.username, touched: touched?.username }}
-                />
-                <InputWithError
-                  placeholder='Email'
-                  style={styles.emailInput}
                   maxLength={100}
-                  accessoryRight={EmailIconOutline}
-                  value={values.email}
-                  disabled={true}
+                  placeholder='Nome do Produto'
+                  accessoryRight={CubeIconOutline}
+                  value={values.name}
+                  onChangeText={handleChange('name')}
+                  onBlur={() => setFieldTouched('name')}
+                  flags={{ error: errors?.name, touched: touched?.name }}
                 />
                 <InputWithError
-                  style={styles.passwordInput}
-                  secureTextEntry={!passwordVisible}
-                  placeholder='Nova senha'
-                  maxLength={10}
-                  accessoryRight={(props) => renderPasswordIcon(props, passwordVisible, onPasswordIconPress)}
-                  value={values.password}
-                  onChangeText={handleChange('password')}
-                  onBlur={() => setFieldTouched('password')}
-                  flags={{ error: errors?.password, touched: touched?.password }}
+                  autoCapitalize='words'
+                  maxLength={500}
+                  placeholder='Descrição do Produto'
+                  multiline={true}
+                  accessoryRight={FileTextIconOutline}
+                  value={values.description}
+                  onChangeText={handleChange('description')}
+                  onBlur={() => setFieldTouched('description')}
+                  flags={{ error: errors?.description, touched: touched?.description }}
                 />
                 <InputWithError
-                  style={styles.phoneInput}
-                  keyboardType='phone-pad'
-                  placeholder='Telefone (com DDD)'
-                  maxLength={15}
-                  accessoryRight={PhoneOutlineIcon}
-                  value={values.phone}
-                  onChangeText={(brutePhone) => setFieldValue('phone', maskPhone(brutePhone))}
-                  onBlur={() => setFieldTouched('phone')}
-                  flags={{ error: errors?.phone, touched: touched?.phone }}
-                />
-                <InputWithError
-                  style={styles.cepInput}
                   keyboardType='numeric'
-                  placeholder='Sandoirhiuashieusa'
-                  accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
-                  value={values.cep}
-                  maxLength={9}
-                  onChangeText={(bruteCep) => {
-                    const maskedCep = maskCep(bruteCep);
-                    setFieldValue('cep', (maskedCep.length > 9) ? maskedCep.slice(0, -1) : maskedCep)
-                  }}
-                  onBlur={() => {
-                    setFieldTouched('cep');
-                    !errors?.cep && searchCep(values.cep, setFieldValue, setLoadingCep)
-                  }}
-                  flags={{ error: errors?.cep, touched: touched?.cep }}
+                  placeholder='Preço'
+                  maxLength={15}
+                  value={values.price}
+                  onChangeText={(rawPrice) => setFieldValue('price', maskCurrency(rawPrice))}
+                  onBlur={() => setFieldTouched('price')}
+                  flags={{ error: errors?.price, touched: touched?.price }}
                 />
-                <InputWithError
-                  style={styles.cepInput}
-                  placeholder='Estado'
-                  maxLength={2}
-                  value={values.state}
-                  onChangeText={handleChange('state')}
-                  onBlur={() => setFieldTouched('state')}
-                  flags={{ error: errors?.state, touched: touched?.state }}
-                />
-                <InputWithError
-                  style={styles.cepInput}
-                  placeholder='Cidade'
-                  maxLength={100}
-                  value={values.city}
-                  onChangeText={handleChange('city')}
-                  onBlur={() => setFieldTouched('city')}
-                  flags={{ error: errors?.city, touched: touched?.city }}
-                />
-                <InputWithError
-                  style={styles.cepInput}
-                  placeholder='Bairro'
-                  maxLength={40}
-                  value={values.district}
-                  onChangeText={handleChange('district')}
-                  onBlur={() => setFieldTouched('district')}
-                  flags={{ error: errors?.district, touched: touched?.district }}
-                />
-                <View style={styles.streetAndNumberContainer}>
-                  <View style={styles.streetContainer}>
-                    <InputWithError
-                      style={styles.streetInput}
-                      placeholder='Rua'
-                      maxLength={100}
-                      value={values.street}
-                      onChangeText={handleChange('street')}
-                      onBlur={() => setFieldTouched('street')}
-                      flags={{ error: errors?.street, touched: touched?.street }}
-                    />
-                  </View>
-                  <View style={styles.houseNumberContainer}>
-                    <InputWithError
-                      style={styles.houseNumberInput}
-                      keyboardType='numeric'
-                      placeholder='Número'
-                      maxLength={5}
-                      value={values.houseNumber}
-                      onChangeText={handleChange('houseNumber')}
-                      onBlur={() => setFieldTouched('houseNumber')}
-                      flags={{ error: errors?.houseNumber, touched: touched?.houseNumber }}
-                    />
-                  </View>
-                </View>
-              </Layout>
+                </Layout>
               <Button
                 style={styles.editButton}
                 size='giant'
                 disabled={!isValid}
                 onPress={handleSubmit}
               >
-                ATUALIZAR
+                CRIAR PRODUTO
               </Button>
             </>
           )}
         </Formik>
       </KeyboardAvoidingView>
-
-      <ConfirmModal
-        visible={confirmPasswordModalVisible}
-        title='Qual a sua senha antiga?'
-        description='Precisamos que informe sua antiga senha como uma medida de segurança para alterá-la'
-        onGotItButtonPress={confirmPasswordModal}
-        onCancelItButtonPress={toggleModalVisibility}
-        elements={(
-          <InputWithError
-            onChangeText={setOldPassword}
-            secureTextEntry={!oldPasswordVisible}
-            placeholder='Senha antiga'
-            maxLength={10}
-            accessoryRight={(props) => renderPasswordIcon(props, oldPasswordVisible, onOldPasswordIconPress)}
-          />
-        )}
-      />
     </SafeAreaLayout>
   );
 };
