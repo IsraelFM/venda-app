@@ -42,7 +42,7 @@ export const HomeDrawer = ({ navigation }) => {
       icon: PersonIcon,
       onPress: () => {
         navigation.toggleDrawer();
-        navigation.navigate('Product');
+        navigation.navigate('Products');
       },
     },  
     {

@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { ProductScreen } from '../scenes/product/product.component';
+import { ProductsScreen } from '../scenes/products/products.component';
 
 const Stack = createStackNavigator();
 
-export const ProductNavigator = () => (
+export const ProductsNavigator = () => (
   <Stack.Navigator headerMode='none'>
-    <Stack.Screen name='Produto' component={ProductScreen}/>
+    <Stack.Screen name='Produtos' component={ProductsScreen}/>
   </Stack.Navigator>
 );
