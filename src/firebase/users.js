@@ -6,6 +6,7 @@ export const {
   createUserDocument,
   getCurrentUserDocument,
   updateCurrentUserDocument,
+  deleteUserProduct
 } = {
   createUserDocument: async ({
     userUid,
@@ -46,13 +47,13 @@ export const {
   },
   updateCurrentUserDocument: async ({ userFields, image = false, name = null }) => {
     try {
-      console.log('update',userFields)
+      console.log('update', userFields)
       await firestore()
         .collection('Users')
         .doc(auth().currentUser.uid)
         .update(userFields);
 
-      if (image && name){
+      if (image && name) {
         const ext = image.split('.').pop();
         console.log(ext)
         console.log(image)
@@ -62,9 +63,9 @@ export const {
         userFields.products[name].uri = uri
         console.log(uri)
         await firestore()
-        .collection('Users')
-        .doc(auth().currentUser.uid)
-        .update(userFields);
+          .collection('Users')
+          .doc(auth().currentUser.uid)
+          .update(userFields);
       }
       return {
         success: 'Perfil atualizado'
@@ -76,4 +77,16 @@ export const {
       }
     }
   },
+  deleteUserProduct: async ({ toDelete }) => {
+    await firestore()
+      .collection('Users')
+      .doc(auth().currentUser.uid)
+      .set({
+        products: {
+          [toDelete]: firestore.FieldValue.delete()
+        }
+      }, {
+        merge: true,
+      });
+  }
 }
