@@ -8,6 +8,10 @@ import {
   TopNavigation,
   TopNavigationAction,
   useStyleSheet,
+  Button,
+  Modal,
+  Card,
+  Text
 } from '@ui-kitten/components';
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
@@ -17,31 +21,43 @@ import { getCurrentUserDocument, updateCurrentUserDocument, deleteUserProduct } 
 export default ({ navigation }) => {
   const [rawProducts, setRawProducts] = React.useState(null)
   const [products, setProducts] = React.useState([])
+  const [visible, setVisible] = React.useState(false);
+  const [showProduct, setShowProduct] = React.useState({
+    name: '',
+    description: '',
+    uri: '',
+    image: '',
+    price: ''
+  })
 
   React.useEffect(async () => {
     const user = await getCurrentUserDocument()
-    console.log(user)
     setRawProducts(user.products)
     await makeProducts()
   }, [rawProducts])
 
+
+
   const ListDividersShowcase = () => {
     const styles = useStyleSheet(themedStyles);
-  
     const renderItem = ({ item, index }) => (
       <ListItem
         title={`${item.name}`}
         description={`${item.description}`}
+        onPress={() => {
+          setShowProduct(item) 
+          setVisible(true)
+        } }
       />
     );
-  
+
     return (
-        <List
-          style={styles.listContainer}
-          data={products}
-          ItemSeparatorComponent={Divider}
-          renderItem={renderItem}
-        />
+      <List
+        style={styles.listContainer}
+        data={products}
+        ItemSeparatorComponent={Divider}
+        renderItem={renderItem}
+      />
     );
   };
 
@@ -49,13 +65,6 @@ export default ({ navigation }) => {
     if (rawProducts)
       setProducts(Object.values(rawProducts))
   }
-
-  const renderProducts = () => ({ item, index }) => (
-    <ListItem
-      title={`${item.name}`}
-      description={`${item.description}`}
-    />
-  );
 
   const styles = useStyleSheet(themedStyles);
 
@@ -76,6 +85,21 @@ export default ({ navigation }) => {
       />
       <Divider />
       {ListDividersShowcase()}
+      <Modal
+        visible={visible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setVisible(false)}>
+        <Card disabled={true}>
+          <Text>{showProduct.name || 'teste'}</Text>
+          <Text>{showProduct.description}</Text>
+          <Button onPress={() => setVisible(false)}>
+            Voltar
+          </Button>
+          <Button onPress={() => setVisible(false)}>
+            Deletar
+          </Button>
+        </Card>
+      </Modal>
     </SafeAreaLayout>
   );
 };
@@ -137,5 +161,8 @@ const themedStyles = StyleService.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: 'color-danger-600',
-  }
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
 });
