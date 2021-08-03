@@ -23,16 +23,13 @@ import { maskCurrency } from '../../utils/mask';
 
 import ProductValidationSchema from '../../validations/Product';
 import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
-import { updatePassword } from '../../firebase/auth';
 import {launchImageLibrary} from 'react-native-image-picker';
 
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [oldPasswordVisible, setOldPasswordVisible] = React.useState(false);
-  const [loadingCep, setLoadingCep] = React.useState(false);
   const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
-  const [oldPassword, setOldPassword] = React.useState('');
   const [image, setImage] = React.useState(null);
 
 
@@ -90,12 +87,13 @@ export default ({ navigation }) => {
   const createProduct = async (image) => {
     const rawUserFields = JSON.parse(JSON.stringify(formikRef.current?.values));
     const products = rawUserFields.products || {}
-    products[rawUserFields.name] = {
+    const name = rawUserFields.name 
+    products[name] = {
+      name,
       description: rawUserFields.description,
       price: rawUserFields.price,
       image
     }
-    const name = rawUserFields.name 
     delete rawUserFields.name 
     delete rawUserFields.description 
     delete rawUserFields.price 
@@ -121,30 +119,6 @@ export default ({ navigation }) => {
     };
   };
 
-  const confirmPasswordModal = async () => {
-    const updatePasswordResponse = await updatePassword({
-      credentials: {
-        oldPassword: oldPassword,
-        password: formikRef.current?.values.password,
-        email: formikRef.current?.values.email,
-      }
-    });
-
-    if (updatePasswordResponse?.error) {
-      showMessage({
-        message: 'Ops...',
-        description: updatePasswordResponse.error,
-        type: 'danger',
-        duration: 2000,
-        floating: true
-      });
-
-      return;
-    }
-    toggleModalVisibility();
-
-    await createProduct();
-  };
 
   const handleProfileSubmit = (e) => {
       if(image){

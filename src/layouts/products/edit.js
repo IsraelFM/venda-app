@@ -1,11 +1,7 @@
 import React, { useRef } from 'react';
-import { View, TouchableWithoutFeedback } from 'react-native';
+import { View, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
 import {
-  Button,
   Divider,
-  Icon,
-  Layout,
-  Spinner,
   List,
   ListItem,
   StyleService,
@@ -13,13 +9,10 @@ import {
   TopNavigationAction,
   useStyleSheet,
 } from '@ui-kitten/components';
-import { showMessage } from "react-native-flash-message";
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
-import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
-
+import { getCurrentUserDocument, updateCurrentUserDocument, deleteUserProduct } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [rawProducts, setRawProducts] = React.useState(null)
@@ -29,18 +22,32 @@ export default ({ navigation }) => {
     const user = await getCurrentUserDocument()
     console.log(user)
     setRawProducts(user.products)
-  }, [])
+    await makeProducts()
+  }, [rawProducts])
 
-  const makeProducts = () => {
-    console.log(rawProducts)
-    if (rawProducts) {
-      for (const key in rawProducts) {
-        if (Object.hasOwnProperty.call(rawProducts, key)) {
-          const element = rawProducts[key];
-          setProducts([...products, element])
-        }
-      }
-    }
+  const ListDividersShowcase = () => {
+    const styles = useStyleSheet(themedStyles);
+  
+    const renderItem = ({ item, index }) => (
+      <ListItem
+        title={`${item.name}`}
+        description={`${item.description}`}
+      />
+    );
+  
+    return (
+        <List
+          style={styles.listContainer}
+          data={products}
+          ItemSeparatorComponent={Divider}
+          renderItem={renderItem}
+        />
+    );
+  };
+
+  const makeProducts = async () => {
+    if (rawProducts)
+      setProducts(Object.values(rawProducts))
   }
 
   const renderProducts = () => ({ item, index }) => (
@@ -50,21 +57,7 @@ export default ({ navigation }) => {
     />
   );
 
-  const makeList = () => {
-
-    makeProducts()
-
-    return (<List
-      style={styles.listContainer}
-      data={products}
-      ItemSeparatorComponent={Divider}
-      renderItem={renderProducts}
-    />)
-  }
-
-
   const styles = useStyleSheet(themedStyles);
-
 
   const renderDrawerAction = () => (
     <TopNavigationAction
@@ -82,12 +75,7 @@ export default ({ navigation }) => {
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
-
-      <KeyboardAvoidingView style={styles.container}>
-        <Layout level='1'>
-          {makeList() || <></>}
-        </Layout>
-      </KeyboardAvoidingView>
+      {ListDividersShowcase()}
     </SafeAreaLayout>
   );
 };
