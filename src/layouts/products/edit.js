@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
+import { View, Image, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
 import {
   Divider,
   List,
@@ -36,8 +36,6 @@ export default ({ navigation }) => {
     await makeProducts()
   }, [rawProducts])
 
-
-
   const ListDividersShowcase = () => {
     const styles = useStyleSheet(themedStyles);
     const renderItem = ({ item, index }) => (
@@ -45,9 +43,9 @@ export default ({ navigation }) => {
         title={`${item.name}`}
         description={`${item.description}`}
         onPress={() => {
-          setShowProduct(item) 
+          setShowProduct(item)
           setVisible(true)
-        } }
+        }}
       />
     );
 
@@ -90,12 +88,29 @@ export default ({ navigation }) => {
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setVisible(false)}>
         <Card disabled={true}>
-          <Text>{showProduct.name || 'teste'}</Text>
-          <Text>{showProduct.description}</Text>
-          <Button onPress={() => setVisible(false)}>
+          <Text
+            style={styles.productName}
+          >{showProduct.name || 'teste'}</Text>
+          <View>
+            <Image
+              style={styles.imgCard}
+              source={{
+                uri: `${showProduct.uri}`
+              }}
+            />
+          </View>
+          <Text
+            style={styles.productDescription}
+          >{showProduct.description}</Text>
+          <Button
+            style={styles.backButton}
+            onPress={() => setVisible(false)}>
             Voltar
           </Button>
-          <Button onPress={() => setVisible(false)}>
+          <Button onPress={async () => {
+            await deleteUserProduct({ toDelete: showProduct.name })
+            setVisible(false)
+            }}>
             Deletar
           </Button>
         </Card>
@@ -162,7 +177,27 @@ const themedStyles = StyleService.create({
     fontWeight: 'bold',
     color: 'color-danger-600',
   },
+  imgCard: {
+    width: 350,
+    height: 350,
+  },
+  productName: {
+    textAlign: 'center',
+    paddingBottom: 10,
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  productDescription: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 10,
+  },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  backButton: {
+    marginBottom: 10,
+    backgroundColor: 'color-info-600'
+  }
 });
