@@ -102,6 +102,9 @@ export default ({ navigation }) => {
           <Text
             style={styles.productDescription}
           >{showProduct.description}</Text>
+          <Text
+            style={styles.productDescription}
+          >{`Preço R$ ${showProduct.price}`}</Text>
           <Button
             style={styles.backButton}
             onPress={() => setVisible(false)}>
