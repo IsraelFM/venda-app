@@ -6,6 +6,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 // import { LayoutsNavigator } from './layouts.navigator';
 // import { ComponentsNavigator } from './components.navigator';
 import { AuthNavigator } from './auth.navigator';
+import { ProductNavigator } from './product.navigator';
+import { ProductsNavigator } from './products.navigator';
 import { HomeBottomNavigation } from '../scenes/home/home-bottom-navigation.component';
 import { HomeDrawer } from '../scenes/home/home-drawer.component';
 import { ProfileNavigator } from './profile.navigator';
@@ -43,6 +45,8 @@ export const HomeNavigator = () => (
     drawerContent={props => <HomeDrawer {...props} />}>
     <Drawer.Screen name='Home' component={HomeTabsNavigator} />
     <Drawer.Screen name='Auth' component={AuthNavigator} />
+    <Drawer.Screen name='Product' component={ProductNavigator} />
+    <Drawer.Screen name='Products' component={ProductsNavigator} />
   </Drawer.Navigator>
 );
 
