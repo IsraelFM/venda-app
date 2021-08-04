@@ -53,18 +53,18 @@ export const HomeBottomNavigation = ({ navigation, state, descriptors }) => {
           title='Home'
           icon={HomeIconOutline}
         />
-        <BottomNavigationTab
+        {/* <BottomNavigationTab
           title='Favoritos'
           icon={HeartIconOutline}
-        />
+        /> */}
         <BottomNavigationTab
           title='Perfil'
           icon={PersonIconOutline}
         />
-        <BottomNavigationTab
+        {/* <BottomNavigationTab
           title='Histórico'
           icon={ArchiveIconOutline}
-        />
+        /> */}
       </BottomNavigation>
     </Animated.View>
   );

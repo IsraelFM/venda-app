@@ -11,14 +11,16 @@ import { ProductsNavigator } from './products.navigator';
 import { HomeBottomNavigation } from '../scenes/home/home-bottom-navigation.component';
 import { HomeDrawer } from '../scenes/home/home-drawer.component';
 import { ProfileNavigator } from './profile.navigator';
+import { HomeScreenNavigator } from './homescreen.navigator';
 // import { LibrariesScreen } from '../scenes/libraries/libraries.component';
 
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-const initialTabRoute = 'Perfil';
+const initialTabRoute = 'Home';
 
-const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
+// const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
+const ROOT_ROUTES = ['Home', 'Perfil'];
 
 const TabBarVisibilityOptions = ({ route }) => {
   const isNestedRoute = route.state?.index > 0;
@@ -32,10 +34,10 @@ const HomeTabsNavigator = () => (
     screenOptions={TabBarVisibilityOptions}
     initialRouteName={initialTabRoute}
     tabBar={props => <HomeBottomNavigation {...props} />}>
-    <BottomTab.Screen name='Home' component={ProfileNavigator} />
-    <BottomTab.Screen name='Favoritos' component={ProfileNavigator} />
+    <BottomTab.Screen name='Home' component={HomeScreenNavigator} />
+    {/* <BottomTab.Screen name='Favoritos' component={ProfileNavigator} /> */}
     <BottomTab.Screen name='Perfil' component={ProfileNavigator} />
-    <BottomTab.Screen name='Histórico' component={ProfileNavigator} />
+    {/* <BottomTab.Screen name='Histórico' component={ProfileNavigator} /> */}
   </BottomTab.Navigator>
 );
 
