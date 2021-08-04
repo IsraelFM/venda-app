@@ -1,11 +1,8 @@
 import React, { useRef } from 'react';
-import { View, TouchableWithoutFeedback } from 'react-native';
 import {
   Button,
   Divider,
-  Icon,
   Layout,
-  Spinner,
   StyleService,
   TopNavigation,
   TopNavigationAction,
@@ -18,20 +15,17 @@ import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import InputWithError from '../../components/input-and-error';
-import {CubeIconOutline,FileTextIconOutline} from './extra/icons';
+import { CubeIconOutline, FileTextIconOutline } from './extra/icons';
 import { maskCurrency } from '../../utils/mask';
 
 import ProductValidationSchema from '../../validations/Product';
 import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { Image } from 'react-native';
 
 
 export default ({ navigation }) => {
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [oldPasswordVisible, setOldPasswordVisible] = React.useState(false);
-  const [confirmPasswordModalVisible, setConfirmPasswordModalVisible] = React.useState(false);
   const [image, setImage] = React.useState(null);
-
 
   const formikRef = useRef();
   const formInitialValues = {
@@ -58,7 +52,7 @@ export default ({ navigation }) => {
 
   const selectImage = () => {
     let options = {
-      title: 'You can choose one image',
+      title: 'Você precisa selecionar pelo menos uma imagem',
       mediaType: 'photo',
       maxWidth: 256,
       maxHeight: 256,
@@ -77,8 +71,7 @@ export default ({ navigation }) => {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        console.log( response.assets[0].uri)
-        let source = { uri: response.uri };
+        console.log(response.assets[0].uri)
         setImage(response.assets[0].uri)
       }
     });
@@ -87,19 +80,19 @@ export default ({ navigation }) => {
   const createProduct = async (image) => {
     const rawUserFields = JSON.parse(JSON.stringify(formikRef.current?.values));
     const products = rawUserFields.products || {}
-    const name = rawUserFields.name 
+    const name = rawUserFields.name
     products[name] = {
       name,
       description: rawUserFields.description,
       price: rawUserFields.price,
       image
     }
-    delete rawUserFields.name 
-    delete rawUserFields.description 
-    delete rawUserFields.price 
-    const userFields = {products, ...rawUserFields}
+    delete rawUserFields.name
+    delete rawUserFields.description
+    delete rawUserFields.price
+    const userFields = { products, ...rawUserFields }
 
-    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({userFields, image: image, name});
+    const updateCurrentUserDocumentResponse = await updateCurrentUserDocument({ userFields, image: image, name });
     if (updateCurrentUserDocumentResponse.success) {
       showMessage({
         message: updateCurrentUserDocumentResponse.success,
@@ -119,30 +112,13 @@ export default ({ navigation }) => {
     };
   };
 
-
-  const handleProfileSubmit = (e) => {
-      if(image){
-        createProduct(image);
-      }
+  const handleProfileSubmit = () => {
+    if (image) {
+      createProduct(image);
+    }
   };
 
   const styles = useStyleSheet(themedStyles);
-
-  const LoadingIndicator = (props) => (
-    <View style={[props.style, styles.indicator]}>
-      <Spinner size='small' />
-    </View>
-  );
-
-  const onPasswordIconPress = () => setPasswordVisible(!passwordVisible);
-  const onOldPasswordIconPress = () => setOldPasswordVisible(!oldPasswordVisible);
-  const toggleModalVisibility = () => setConfirmPasswordModalVisible(!confirmPasswordModalVisible);
-
-  const renderPasswordIcon = (props, passwordStateWatch, passwordIconPress) => (
-    <TouchableWithoutFeedback onPress={passwordIconPress}>
-      <Icon {...props} name={passwordStateWatch ? 'eye-off-outline' : 'eye-outline'} />
-    </TouchableWithoutFeedback>
-  );
 
   const renderDrawerAction = () => (
     <TopNavigationAction
@@ -156,7 +132,7 @@ export default ({ navigation }) => {
       style={styles.safeArea}
       insets='top'>
       <TopNavigation
-        title='Venda Livre'
+        title='Cadastrar produtos'
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
@@ -172,7 +148,8 @@ export default ({ navigation }) => {
             <>
               <Layout style={styles.formContainer} level='1'>
                 <InputWithError
-                  autoCapitalize='words'
+                  style={styles.input}
+                  autoCapitalize='none'
                   maxLength={100}
                   placeholder='Nome do Produto'
                   accessoryRight={CubeIconOutline}
@@ -182,7 +159,8 @@ export default ({ navigation }) => {
                   flags={{ error: errors?.name, touched: touched?.name }}
                 />
                 <InputWithError
-                  autoCapitalize='words'
+                  style={styles.input}
+                  autoCapitalize='none'
                   maxLength={500}
                   placeholder='Descrição do Produto'
                   multiline={true}
@@ -193,6 +171,7 @@ export default ({ navigation }) => {
                   flags={{ error: errors?.description, touched: touched?.description }}
                 />
                 <InputWithError
+                  style={styles.input}
                   keyboardType='numeric'
                   placeholder='Preço'
                   maxLength={15}
@@ -201,13 +180,16 @@ export default ({ navigation }) => {
                   onBlur={() => setFieldTouched('price')}
                   flags={{ error: errors?.price, touched: touched?.price }}
                 />
+                <Layout style={styles.imageContainer}>
+                  <Image style={styles.image} source={{ uri: image}} />
                 </Layout>
+              </Layout>
               <Button
                 style={styles.editButton}
                 size='giant'
                 onPress={selectImage}
               >
-                Select Image
+                SELECIONE UMA IMAGEM
               </Button>
               <Button
                 style={styles.editButton}
@@ -236,38 +218,22 @@ const themedStyles = StyleService.create({
     flex: 1,
     paddingTop: 10,
     paddingHorizontal: 16,
-    backgroundColor: 'color-success-400',
+    backgroundColor: 'transparent',
   },
-  emailInput: {
+  input: {
     marginTop: 16,
   },
-  passwordInput: {
+  imageContainer: {
     marginTop: 16,
-  },
-  phoneInput: {
-    marginTop: 16,
-  },
-  cepInput: {
-    marginTop: 16,
-  },
-  streetAndNumberContainer: {
-    flex: 1,
     flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    backgroundColor: 'transparent',
   },
-  streetContainer: {
-    flex: 3,
-    flexDirection: 'column'
-  },
-  streetInput: {
-    marginTop: 16,
-  },
-  houseNumberContainer: {
-    flex: 1,
-    marginLeft: 16,
-    flexDirection: 'column'
-  },
-  houseNumberInput: {
-    marginTop: 16,
+  image: {
+    width: 300,
+    height: 300,
+    
   },
   editButton: {
     borderRadius: 50,

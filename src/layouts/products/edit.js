@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Image, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
+import React from 'react';
+import { View, Image } from 'react-native';
 import {
   Divider,
   List,
@@ -16,7 +16,7 @@ import {
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
-import { getCurrentUserDocument, updateCurrentUserDocument, deleteUserProduct } from '../../firebase/users';
+import { getCurrentUserDocument, deleteUserProduct } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [rawProducts, setRawProducts] = React.useState(null)
@@ -78,7 +78,7 @@ export default ({ navigation }) => {
       style={styles.safeArea}
       insets='top'>
       <TopNavigation
-        title='Venda Livre'
+        title='Lista de Produtos'
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
@@ -126,9 +126,6 @@ const themedStyles = StyleService.create({
   safeArea: {
     flex: 1,
   },
-  listContainer: {
-    maxHeight: 200,
-  },
   container: {
     backgroundColor: 'color-success-400',
   },
@@ -139,34 +136,6 @@ const themedStyles = StyleService.create({
     backgroundColor: 'color-success-400',
   },
   emailInput: {
-    marginTop: 16,
-  },
-  passwordInput: {
-    marginTop: 16,
-  },
-  phoneInput: {
-    marginTop: 16,
-  },
-  cepInput: {
-    marginTop: 16,
-  },
-  streetAndNumberContainer: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  streetContainer: {
-    flex: 3,
-    flexDirection: 'column'
-  },
-  streetInput: {
-    marginTop: 16,
-  },
-  houseNumberContainer: {
-    flex: 1,
-    marginLeft: 16,
-    flexDirection: 'column'
-  },
-  houseNumberInput: {
     marginTop: 16,
   },
   editButton: {

@@ -55,17 +55,18 @@ export const {
 
       if (image && name) {
         const ext = image.split('.').pop();
-        console.log(ext)
-        console.log(image)
         const reference = `${new Date().getTime()}.${ext}`
         await storage().ref(reference).putFile(image)
         const uri = await storage().ref(reference).getDownloadURL()
         userFields.products[name].uri = uri
-        console.log(uri)
         await firestore()
           .collection('Users')
           .doc(auth().currentUser.uid)
           .update(userFields);
+
+        return {
+          success: 'Produto atualizado'
+        }    
       }
       return {
         success: 'Perfil atualizado'
