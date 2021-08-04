@@ -9,7 +9,7 @@ import {
   Text,
 } from '@ui-kitten/components';
 
-import { GithubIcon } from '../../components/icons';
+import { GithubIcon, HomeIconOutline } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
@@ -27,6 +27,14 @@ export const HomeDrawer = ({ navigation }) => {
       onPress: () => {
         WebBrowserService.openBrowserAsync('https://github.com/IsraelFM/vendas-app');
         navigation.toggleDrawer();
+      },
+    },
+    {
+      title: 'Home',
+      icon: HomeIconOutline,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Home');
       },
     },
     {
