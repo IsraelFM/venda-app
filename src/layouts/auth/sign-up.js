@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
 import { Formik } from 'formik';
 import {
@@ -11,24 +11,25 @@ import {
 } from '@ui-kitten/components';
 import { showMessage } from "react-native-flash-message";
 
-import { ProfileAvatar } from './extra/profile-avatar.component';
 import {
-  EmailIcon,
-  PersonIcon,
-  PlusIcon,
+  EmailIconOutline,
+  PersonIconOutline,
   GlobeIconOutline,
   PhoneOutlineIcon,
 } from './extra/icons';
-import { KeyboardAvoidingView } from './extra/3rd-party';
+import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import { maskCep, maskPhone } from '../../utils/mask';
 import InputWithError from '../../components/input-and-error';
+import { searchCep } from '../../utils/cep';
 
 import userSignUpValidationSchema from '../../validations/userSignUp';
-import { createUserDocument, createUserWithEmailAndPassword } from '../../firebase/users';
+import { createAuthWithEmailAndPassword } from '../../firebase/auth';
+import { createUserDocument } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
+  const formikRef = useRef();
 
   const formInitialValues = {
     username: '',
@@ -46,17 +47,15 @@ export default ({ navigation }) => {
   const styles = useStyleSheet(themedStyles);
 
   const onSignUpButtonPress = async (data, { resetForm }) => {
-    let createAuthUserResponse = null;
-
-    createAuthUserResponse = await createUserWithEmailAndPassword({
+    const createAuthEmailAndPasswordResponse = await createAuthWithEmailAndPassword({
       email: data.email.trim(),
       password: data.password.trim(),
     });
 
-    if (createAuthUserResponse.error) {
+    if (createAuthEmailAndPasswordResponse.error) {
       showMessage({
         message: 'Ops...',
-        description: createAuthUserResponse.error,
+        description: createAuthEmailAndPasswordResponse.error,
         type: 'danger',
         duration: 2000,
       });
@@ -65,7 +64,7 @@ export default ({ navigation }) => {
     }
 
     const createDocumentResponse = await createUserDocument({
-      userUid: createAuthUserResponse.user.uid,
+      userUid: createAuthEmailAndPasswordResponse.user.uid,
       userFields: {
         username: data.username.trim(),
         phone: data.phone.trim(),
@@ -86,9 +85,9 @@ export default ({ navigation }) => {
         duration: 2000,
       });
 
-      createAuthUserResponse.user.delete();
+      createAuthEmailAndPasswordResponse.user.delete();
     } else {
-      createAuthUserResponse.user.sendEmailVerification();
+      createAuthEmailAndPasswordResponse.user.sendEmailVerification();
 
       showMessage({
         message: createDocumentResponse.success,
@@ -109,55 +108,32 @@ export default ({ navigation }) => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const renderEditAvatarButton = () => (
-    <Button
-      style={styles.editAvatarButton}
-      status='basic'
-      accessoryRight={PlusIcon}
-    />
-  );
-
   const LoadingIndicator = (props) => (
     <View style={[props.style, styles.indicator]}>
       <Spinner size='small' />
     </View>
   );
 
-  const searchCep = (cep, setFieldValue) => {
-    if (cep.length !== 9) return;
-
-    setLoadingCep(true);
-    fetch(`https://viacep.com.br/ws/${cep}/json/`)
-      .then(res => res.json())
-      .then(data => {
-        setFieldValue('street', data.logradouro)
-        setFieldValue('district', data.bairro)
-        setFieldValue('city', data.localidade)
-        setFieldValue('state', data.uf)
-
-        setLoadingCep(false);
-      })
-      .catch(() => setLoadingCep(false));
-  }
-
   const renderPasswordIcon = (props) => (
     <TouchableWithoutFeedback onPress={onPasswordIconPress}>
-      <Icon {...props} name={passwordVisible ? 'eye-off' : 'eye'} />
+      <Icon {...props} name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} />
     </TouchableWithoutFeedback>
   );
+
+  navigation.addListener('focus', () => {
+    formikRef.current?.setErrors({});
+    formikRef.current?.setTouched({});
+  });
 
   return (
     <>
       <KeyboardAvoidingView style={styles.container}>
-        {/* <View style={styles.headerContainer}>
-          <ProfileAvatar
-            style={styles.profileAvatar}
-            resizeMode='center'
-            source={require('./assets/image-person.png')}
-            editButton={renderEditAvatarButton}
-          />
-        </View> */}
-        <Formik initialValues={formInitialValues} validationSchema={userSignUpValidationSchema} onSubmit={onSignUpButtonPress} >
+        <Formik
+          innerRef={formikRef}
+          initialValues={formInitialValues}
+          validationSchema={userSignUpValidationSchema}
+          onSubmit={onSignUpButtonPress}
+        >
           {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
             <>
               <Layout style={styles.formContainer} level='1'>
@@ -165,7 +141,7 @@ export default ({ navigation }) => {
                   autoCapitalize='words'
                   maxLength={150}
                   placeholder='Nome de Usuário'
-                  accessoryRight={PersonIcon}
+                  accessoryRight={PersonIconOutline}
                   value={values.username}
                   onChangeText={handleChange('username')}
                   onBlur={() => setFieldTouched('username')}
@@ -175,7 +151,7 @@ export default ({ navigation }) => {
                   style={styles.emailInput}
                   placeholder='Email'
                   maxLength={100}
-                  accessoryRight={EmailIcon}
+                  accessoryRight={EmailIconOutline}
                   value={values.email}
                   onChangeText={handleChange('email')}
                   onBlur={() => setFieldTouched('email')}
@@ -210,10 +186,13 @@ export default ({ navigation }) => {
                   accessoryRight={loadingCep ? LoadingIndicator : GlobeIconOutline}
                   value={values.cep}
                   maxLength={9}
-                  onChangeText={(bruteCep) => setFieldValue('cep', maskCep(bruteCep))}
+                  onChangeText={(bruteCep) => {
+                    const maskedCep = maskCep(bruteCep);
+                    setFieldValue('cep', (maskedCep.length > 9) ? maskedCep.slice(0, -1) : maskedCep)
+                  }}
                   onBlur={() => {
                     setFieldTouched('cep');
-                    !errors?.cep && searchCep(values.cep, setFieldValue)
+                    !errors?.cep && searchCep(values.cep, setFieldValue, setLoadingCep)
                   }}
                   flags={{ error: errors?.cep, touched: touched?.cep }}
                 />
@@ -304,20 +283,6 @@ const themedStyles = StyleService.create({
     minHeight: 150,
     backgroundColor: 'color-success-transparent-100',
   },
-  profileAvatar: {
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-    alignSelf: 'center',
-    backgroundColor: 'color-success-400',
-    tintColor: 'color-primary-default',
-  },
-  editAvatarButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'background-basic-color-1',
-  },
   formContainer: {
     flex: 1,
     paddingTop: 10,
@@ -337,6 +302,7 @@ const themedStyles = StyleService.create({
     marginTop: 16,
   },
   streetAndNumberContainer: {
+    flex: 1,
     flexDirection: 'row',
   },
   streetContainer: {

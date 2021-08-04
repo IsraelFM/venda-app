@@ -1,93 +1,13 @@
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 
 export const {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
   createUserDocument,
+  getCurrentUserDocument,
+  updateCurrentUserDocument,
+  deleteUserProduct
 } = {
-  createUserWithEmailAndPassword: async ({
-    email,
-    password,
-  }) => {
-    try {
-      return await auth().createUserWithEmailAndPassword(email, password);
-    } catch (error) {
-      if (error.code === 'auth/email-already-in-use') {
-        return {
-          error: 'O endereço de email já está em uso'
-        }
-      }
-
-      if (error.code === 'auth/invalid-email') {
-        return {
-          error: 'O endereço de email informado é inválido'
-        }
-      }
-
-      // TODO: Registrar log no Analytics
-      return {
-        error: 'Um erro inesperado aconteceu. Por favor, tente novamente mais tarde'
-      }
-    }
-  },
-  signInWithEmailAndPassword: async ({
-    email,
-    password,
-  }) => {
-    try {
-      await auth().signInWithEmailAndPassword(email, password);
-
-      return {
-        success: 'Acesso concedido!'
-      }
-    } catch (error) {
-      if (error.code === 'auth/user-disabled') {
-        return {
-          error: 'O usuário vinculado a esse email foi inativado'
-        }
-      }
-
-      if (error.code === 'auth/invalid-email') {
-        return {
-          error: 'O endereço de email informado é inválido'
-        }
-      }
-
-      // TODO: Registrar log no Analytics
-      return {
-        error: 'O email ou a senha estão incorretos'
-      }
-    }
-  },
-  sendPasswordResetEmail: async ({
-    email,
-  }) => {
-    try {
-      await auth().sendPasswordResetEmail(email);
-
-      return {
-        success: 'Verifique sua caixa de entrada resetar sua senha'
-      }
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        return {
-          error: 'Tem certeza que esse email está vinculado à sua conta?'
-        }
-      }
-
-      if (error.code === 'auth/invalid-email') {
-        return {
-          error: 'O endereço de email informado é inválido'
-        }
-      }
-
-      return {
-        error: 'Um erro aconteceu ao tentar recuperar sua senha. Por favor, tente novamente'
-      }
-    }
-  },
   createUserDocument: async ({
     userUid,
     userFields,
@@ -106,5 +26,68 @@ export const {
         error: 'Um erro aconteceu ao tentar cadastrar seu usuário. Por favor, tente novamente'
       }
     }
+  },
+  getCurrentUserDocument: async () => {
+    try {
+      const user = await firestore()
+        .collection('Users')
+        .doc(auth().currentUser.uid)
+        .get();
+
+      return {
+        ...user.data(),
+        email: auth().currentUser.email,
+        password: '',
+      }
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
+  updateCurrentUserDocument: async ({ userFields, image = false, name = null }) => {
+    try {
+      console.log('update', userFields)
+      await firestore()
+        .collection('Users')
+        .doc(auth().currentUser.uid)
+        .update(userFields);
+
+      if (image && name) {
+        const ext = image.split('.').pop();
+        const reference = `${new Date().getTime()}.${ext}`
+        await storage().ref(reference).putFile(image)
+        const uri = await storage().ref(reference).getDownloadURL()
+        userFields.products[name].uri = uri
+        await firestore()
+          .collection('Users')
+          .doc(auth().currentUser.uid)
+          .update(userFields);
+
+        return {
+          success: 'Produto atualizado'
+        }    
+      }
+      return {
+        success: 'Perfil atualizado'
+      }
+    } catch (error) {
+      console.log(error)
+      return {
+        error: 'Um erro aconteceu ao atualizar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
+  deleteUserProduct: async ({ toDelete }) => {
+    await firestore()
+      .collection('Users')
+      .doc(auth().currentUser.uid)
+      .set({
+        products: {
+          [toDelete]: firestore.FieldValue.delete()
+        }
+      }, {
+        merge: true,
+      });
   }
 }

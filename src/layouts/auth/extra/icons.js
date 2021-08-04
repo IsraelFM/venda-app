@@ -1,20 +1,16 @@
 import React from 'react';
 import { Icon } from '@ui-kitten/components';
 
-export const EmailIcon = (style) => (
-  <Icon {...style} name='email'/>
+export const EmailIconOutline = (style) => (
+  <Icon {...style} name='email-outline'/>
 );
 
 export const GlobeIconOutline = (style) => (
   <Icon {...style} name='globe-2-outline'/>
 );
 
-export const PersonIcon = (style) => (
-  <Icon {...style} name='person' />
-);
-
-export const PlusIcon = (style) => (
-  <Icon {...style} name='plus'/>
+export const PersonIconOutline = (style) => (
+  <Icon {...style} name='person-outline' />
 );
 
 export const PhoneOutlineIcon = (style) => (

@@ -21,12 +21,16 @@ const userSignUpValidationSchema = yup.object().shape({
     .required('Por favor, informe seu telefone'),
   cep: yup
     .string()
+    .transform(cep => {
+      // NOTE: Tratativa para lidar com a máscara
+      return (cep.length > 9) ? cep.slice(0, -1) : cep;
+    })
     .max(9, 'Por favor, insira um CEP válido')
     .min(9, 'Por favor, insira um CEP válido')
     .required('Qual o CEP de onde você mora?'),
   state: yup
     .string()
-    .length(2)
+    .length(2, 'A sigla precisa ter duas letras')
     .max(2)
     .required('Qual a sigla do estado em você mora?'),
   city: yup

@@ -1,17 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
 import { Button, Layout, StyleService, useStyleSheet, Icon } from '@ui-kitten/components';
 import { showMessage } from 'react-native-flash-message';
 import { Formik } from 'formik';
 
 import { PersonIcon } from './extra/icons';
-import { KeyboardAvoidingView } from './extra/3rd-party';
-import { signInWithEmailAndPassword } from '../../firebase/users';
+import { KeyboardAvoidingView } from '../../components/keyboard-view';
+import { signInWithEmailAndPassword } from '../../firebase/auth';
 import InputWithError from '../../components/input-and-error';
 import userSignInValidationSchema from '../../validations/userSignIn';
 
 export default ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const formikRef = useRef();
 
   const formInitialValues = {
     email: '',
@@ -55,13 +56,23 @@ export default ({ navigation }) => {
 
   const renderPasswordIcon = (props) => (
     <TouchableWithoutFeedback onPress={onPasswordIconPress}>
-      <Icon {...props} name={passwordVisible ? 'eye-off' : 'eye'} />
+      <Icon {...props} name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} />
     </TouchableWithoutFeedback>
   );
 
+  navigation.addListener('focus', () => {
+    formikRef.current?.setErrors({});
+    formikRef.current?.setTouched({});
+  });
+
   return (
     <KeyboardAvoidingView style={styles.container}>
-      <Formik initialValues={formInitialValues} validationSchema={userSignInValidationSchema} onSubmit={onSignInButtonPress} >
+      <Formik
+        innerRef={formikRef}
+        initialValues={formInitialValues}
+        validationSchema={userSignInValidationSchema}
+        onSubmit={onSignInButtonPress}
+      >
         {({ values, touched, errors, handleChange, handleSubmit, setFieldTouched }) => (
           <>
             <Layout

@@ -9,7 +9,7 @@ import {
   Text,
 } from '@ui-kitten/components';
 
-import { GithubIcon } from '../../components/icons';
+import { GithubIcon, HomeIconOutline } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
@@ -30,11 +30,35 @@ export const HomeDrawer = ({ navigation }) => {
       },
     },
     {
+      title: 'Home',
+      icon: HomeIconOutline,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Home');
+      },
+    },
+    {
       title: 'Entrar',
       icon: PersonIcon,
       onPress: () => {
         navigation.toggleDrawer();
         navigation.navigate('Auth');
+      },
+    },  
+    {
+      title: 'Produtos',
+      icon: PersonIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Products');
+      },
+    },  
+    {
+      title: 'Cadastrar Produtos',
+      icon: PersonIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Product');
       },
     },  
   ];
