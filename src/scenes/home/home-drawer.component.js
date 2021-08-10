@@ -8,19 +8,90 @@ import {
   Layout,
   Text,
 } from '@ui-kitten/components';
+import { showMessage } from 'react-native-flash-message';
 
-import { GithubIcon, HomeIconOutline } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
-import { PersonIcon } from '../../layouts/auth/extra/icons';
+import { GithubIcon, HomeIconOutline } from '../../components/icons';
+import { CubeOutlineIcon, GridOutlineIcon, LogInOutlineIcon, LogOutOutlineIcon } from '../../layouts/auth/extra/icons';
+import { userIsLogged, userType } from '../../firebase/users';
+import { logout } from '../../firebase/auth';
 
 const version = AppInfoService.getVersion();
 
 export const HomeDrawer = ({ navigation }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
 
+  const userSellerOrBuyer = userType();
+
   const DATA = [
+    {
+      title: 'HOME',
+      icon: HomeIconOutline,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Home');
+      },
+    },
+    {
+      style: {
+        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
+      },
+      title: 'Produtos',
+      icon: GridOutlineIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Products');
+      },
+    },
+    {
+      style: {
+        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
+      },
+      title: 'Cadastrar Produtos',
+      icon: CubeOutlineIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Product');
+      },
+    },
+    {
+      style: {
+        ...(userIsLogged() && { display: 'none' } || {}),
+      },
+      title: 'Entrar na minha conta',
+      icon: LogInOutlineIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Auth');
+      },
+    },
+    {
+      style: {
+        ...(!userIsLogged() && { display: 'none' } || {}),
+      },
+      title: 'Sair da minha conta',
+      icon: LogOutOutlineIcon,
+      onPress: async () => {
+        navigation.toggleDrawer();
+        const logoutResponse = await logout();
+
+        if (logoutResponse.error) {
+          showMessage({
+            message: logoutResponse.error,
+            type: 'error',
+            duration: 2000,
+          });
+        } else {
+          showMessage({
+            message: logoutResponse.success,
+            type: 'success',
+            duration: 2000,
+          });
+        }
+      },
+    },
     {
       title: 'Apoie este Projeto',
       icon: GithubIcon,
@@ -29,38 +100,6 @@ export const HomeDrawer = ({ navigation }) => {
         navigation.toggleDrawer();
       },
     },
-    {
-      title: 'Home',
-      icon: HomeIconOutline,
-      onPress: () => {
-        navigation.toggleDrawer();
-        navigation.navigate('Home');
-      },
-    },
-    {
-      title: 'Entrar',
-      icon: PersonIcon,
-      onPress: () => {
-        navigation.toggleDrawer();
-        navigation.navigate('Auth');
-      },
-    },  
-    {
-      title: 'Produtos',
-      icon: PersonIcon,
-      onPress: () => {
-        navigation.toggleDrawer();
-        navigation.navigate('Products');
-      },
-    },  
-    {
-      title: 'Cadastrar Produtos',
-      icon: PersonIcon,
-      onPress: () => {
-        navigation.toggleDrawer();
-        navigation.navigate('Product');
-      },
-    },  
   ];
 
   const renderHeader = () => (
@@ -100,6 +139,7 @@ export const HomeDrawer = ({ navigation }) => {
       {DATA.map((el, index) => (
         <DrawerItem
           key={index}
+          style={el.style || {}}
           title={el.title}
           onPress={el.onPress}
           accessoryLeft={el.icon}
@@ -117,15 +157,18 @@ const styles = StyleSheet.create({
     height: 128,
     paddingHorizontal: 16,
     justifyContent: 'center',
+    backgroundColor: '#D7085A'
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginLeft: 16,
+    backgroundColor: '#D7085A'
   },
   footerText: {
-    fontSize: 14,
-    color: '#B1B1B1'
+    fontSize: 16,
+    marginLeft: 16,
+    color: 'white',
+    fontWeight: '900',
   },
   profileContainer: {
     flexDirection: 'row',

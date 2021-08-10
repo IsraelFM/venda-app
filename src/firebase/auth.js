@@ -5,6 +5,7 @@ export const {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   updatePassword,
+  logout,
 } = {
   createAuthWithEmailAndPassword: async ({
     email,
@@ -101,5 +102,17 @@ export const {
         error: 'Um erro aconteceu ao atualizar a sua senha. Estamos contactando o suporte'
       }
     }
+  },
+  logout: async () => {
+    try {
+      await auth().signOut()
+      return {
+        success: 'Você saiu da sua conta'
+      }
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao sair da sua conta. Estamos contactando o suporte'
+      }
+    }  
   },
 }

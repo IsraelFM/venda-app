@@ -36,7 +36,6 @@ export default ({ navigation }) => {
 
   navigation.addListener('focus', async () => {
     const getCurrentUserDocumentResponse = await getCurrentUserDocument();
-    console.log(getCurrentUserDocumentResponse)
     if (!getCurrentUserDocument.error) {
       formikRef.current?.setValues(getCurrentUserDocumentResponse);
     } else {

@@ -3,11 +3,15 @@ import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 
 export const {
+  userIsLogged,
+  userType,
   createUserDocument,
   getCurrentUserDocument,
   updateCurrentUserDocument,
   deleteUserProduct
 } = {
+  userIsLogged: () => auth()?.currentUser ? true : false,
+  userType: async () => auth()?.currentUser ? (await getCurrentUserDocument())?.type : 'buyer',
   createUserDocument: async ({
     userUid,
     userFields,

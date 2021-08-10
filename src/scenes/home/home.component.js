@@ -12,7 +12,7 @@ export const HomeScreen = ({ navigation }) => {
           height: '100%',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: 'color-primary-default'
+          backgroundColor: '#D7085A'
         }}
       >
         <Image
