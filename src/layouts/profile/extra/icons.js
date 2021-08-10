@@ -13,6 +13,14 @@ export const PersonIconOutline = (style) => (
   <Icon {...style} name='person-outline' />
 );
 
+export const PersonAddOutlineIcon = (style) => (
+  <Icon {...style} name='person-add-outline' />
+);
+
 export const PhoneOutlineIcon = (style) => (
   <Icon {...style} name='phone-outline'/>
+);
+
+export const LogInOutlineIcon = (style) => (
+  <Icon {...style} name='log-in-outline' />
 );

@@ -18,25 +18,8 @@ import { userIsLogged, userType } from '../../firebase/users';
 
 const version = AppInfoService.getVersion();
 
-// const userIsLoggedIn = () => {
-//   const getCurrentUserDocumentResponse = await getCurrentUserDocument();
-
-//   if (!getCurrentUserDocument.error) {
-//     formikRef.current?.setValues(getCurrentUserDocumentResponse);
-//   } else {
-//     showMessage({
-//       message: 'Ops...',
-//       description: getCurrentUserDocumentResponse.error,
-//       type: 'danger',
-//       duration: 2000,
-//       floating: true
-//     });
-//   }
-// }
-
 export const HomeDrawer = ({ navigation }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
-  console.log(':)', userType());
 
   const DATA = [
     {
