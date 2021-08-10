@@ -67,6 +67,7 @@ export default ({ navigation }) => {
       userUid: createAuthEmailAndPasswordResponse.user.uid,
       userFields: {
         username: data.username.trim(),
+        type: 'buyer', //seller
         phone: data.phone.trim(),
         cep: data.cep.trim(),
         state: data.state.trim(),
