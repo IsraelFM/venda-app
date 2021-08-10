@@ -157,15 +157,18 @@ const styles = StyleSheet.create({
     height: 128,
     paddingHorizontal: 16,
     justifyContent: 'center',
+    backgroundColor: '#D7085A'
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginLeft: 16,
+    backgroundColor: '#D7085A'
   },
   footerText: {
-    fontSize: 14,
-    color: '#B1B1B1'
+    fontSize: 16,
+    marginLeft: 16,
+    color: 'white',
+    fontWeight: '900',
   },
   profileContainer: {
     flexDirection: 'row',
