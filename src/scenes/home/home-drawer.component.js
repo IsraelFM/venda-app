@@ -9,26 +9,36 @@ import {
   Text,
 } from '@ui-kitten/components';
 
-import { GithubIcon, HomeIconOutline } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
-import { PersonIcon } from '../../layouts/auth/extra/icons';
+import { GithubIcon, HomeIconOutline } from '../../components/icons';
+import { CubeOutlineIcon, GridOutlineIcon, LogInOutlineIcon } from '../../layouts/auth/extra/icons';
+import { userIsLogged, userType } from '../../firebase/users';
 
 const version = AppInfoService.getVersion();
 
+// const userIsLoggedIn = () => {
+//   const getCurrentUserDocumentResponse = await getCurrentUserDocument();
+
+//   if (!getCurrentUserDocument.error) {
+//     formikRef.current?.setValues(getCurrentUserDocumentResponse);
+//   } else {
+//     showMessage({
+//       message: 'Ops...',
+//       description: getCurrentUserDocumentResponse.error,
+//       type: 'danger',
+//       duration: 2000,
+//       floating: true
+//     });
+//   }
+// }
+
 export const HomeDrawer = ({ navigation }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
+  console.log(':)', userType());
 
   const DATA = [
-    {
-      title: 'Apoie este Projeto',
-      icon: GithubIcon,
-      onPress: () => {
-        WebBrowserService.openBrowserAsync('https://github.com/IsraelFM/vendas-app');
-        navigation.toggleDrawer();
-      },
-    },
     {
       title: 'Home',
       icon: HomeIconOutline,
@@ -38,29 +48,46 @@ export const HomeDrawer = ({ navigation }) => {
       },
     },
     {
-      title: 'Entrar',
-      icon: PersonIcon,
-      onPress: () => {
-        navigation.toggleDrawer();
-        navigation.navigate('Auth');
+      style: {
+        ...((!userIsLogged() || userType() === 'buyer') && { display: 'none' } || {}),
       },
-    },  
-    {
       title: 'Produtos',
-      icon: PersonIcon,
+      icon: GridOutlineIcon,
       onPress: () => {
         navigation.toggleDrawer();
         navigation.navigate('Products');
       },
-    },  
+    },
     {
+      style: {
+        ...((!userIsLogged() || userType() === 'buyer') && { display: 'none' } || {}),
+      },
       title: 'Cadastrar Produtos',
-      icon: PersonIcon,
+      icon: CubeOutlineIcon,
       onPress: () => {
         navigation.toggleDrawer();
         navigation.navigate('Product');
       },
-    },  
+    },
+    {
+      style: {
+        ...(userIsLogged() && { display: 'none' } || {}),
+      },
+      title: 'Entrar na minha conta',
+      icon: LogInOutlineIcon,
+      onPress: () => {
+        navigation.toggleDrawer();
+        navigation.navigate('Auth');
+      },
+    },
+    {
+      title: 'Apoie este Projeto',
+      icon: GithubIcon,
+      onPress: () => {
+        WebBrowserService.openBrowserAsync('https://github.com/IsraelFM/vendas-app');
+        navigation.toggleDrawer();
+      },
+    },
   ];
 
   const renderHeader = () => (
@@ -100,6 +127,7 @@ export const HomeDrawer = ({ navigation }) => {
       {DATA.map((el, index) => (
         <DrawerItem
           key={index}
+          style={el.style || {}}
           title={el.title}
           onPress={el.onPress}
           accessoryLeft={el.icon}
