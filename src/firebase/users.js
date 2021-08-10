@@ -11,7 +11,7 @@ export const {
   deleteUserProduct
 } = {
   userIsLogged: () => auth()?.currentUser ? true : false,
-  userType: () => auth()?.currentUser?.type ?? 'buyer',
+  userType: async () => auth()?.currentUser ? (await getCurrentUserDocument())?.type : 'buyer',
   createUserDocument: async ({
     userUid,
     userFields,

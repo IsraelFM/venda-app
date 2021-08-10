@@ -8,22 +8,26 @@ import {
   Layout,
   Text,
 } from '@ui-kitten/components';
+import { showMessage } from 'react-native-flash-message';
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
 import { GithubIcon, HomeIconOutline } from '../../components/icons';
-import { CubeOutlineIcon, GridOutlineIcon, LogInOutlineIcon } from '../../layouts/auth/extra/icons';
+import { CubeOutlineIcon, GridOutlineIcon, LogInOutlineIcon, LogOutOutlineIcon } from '../../layouts/auth/extra/icons';
 import { userIsLogged, userType } from '../../firebase/users';
+import { logout } from '../../firebase/auth';
 
 const version = AppInfoService.getVersion();
 
 export const HomeDrawer = ({ navigation }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
 
+  const userSellerOrBuyer = userType();
+
   const DATA = [
     {
-      title: 'Home',
+      title: 'HOME',
       icon: HomeIconOutline,
       onPress: () => {
         navigation.toggleDrawer();
@@ -32,7 +36,7 @@ export const HomeDrawer = ({ navigation }) => {
     },
     {
       style: {
-        ...((!userIsLogged() || userType() === 'buyer') && { display: 'none' } || {}),
+        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
       },
       title: 'Produtos',
       icon: GridOutlineIcon,
@@ -43,7 +47,7 @@ export const HomeDrawer = ({ navigation }) => {
     },
     {
       style: {
-        ...((!userIsLogged() || userType() === 'buyer') && { display: 'none' } || {}),
+        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
       },
       title: 'Cadastrar Produtos',
       icon: CubeOutlineIcon,
@@ -61,6 +65,31 @@ export const HomeDrawer = ({ navigation }) => {
       onPress: () => {
         navigation.toggleDrawer();
         navigation.navigate('Auth');
+      },
+    },
+    {
+      style: {
+        ...(!userIsLogged() && { display: 'none' } || {}),
+      },
+      title: 'Sair da minha conta',
+      icon: LogOutOutlineIcon,
+      onPress: async () => {
+        navigation.toggleDrawer();
+        const logoutResponse = await logout();
+
+        if (logoutResponse.error) {
+          showMessage({
+            message: logoutResponse.error,
+            type: 'error',
+            duration: 2000,
+          });
+        } else {
+          showMessage({
+            message: logoutResponse.success,
+            type: 'success',
+            duration: 2000,
+          });
+        }
       },
     },
     {
