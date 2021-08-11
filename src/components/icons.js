@@ -25,8 +25,8 @@ export const ArchiveIconOutline = (style) => (
   <Icon {...style} name='archive-outline'/>
 );
 
-export const HeartIconOutline = (style) => (
-  <Icon {...style} name='heart-outline'/>
+export const CarOutlineIcon = (style) => (
+  <Icon {...style} name='car-outline'/>
 );
 
 export const BookmarkIcon = (style) => (
