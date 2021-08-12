@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, ScrollView } from 'react-native';
+import { View, Image, ScrollView, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import {
   Divider,
   StyleService,
@@ -43,19 +43,26 @@ export default ({ navigation }) => {
           {sellers.map((seller, key) => (
             <View key={key} style={[styles.viewSellerContainer, seller.hide ? { display: 'none' } : {}]} >
               <Card style={styles.cardSellerContainer}>
-                <Image
-                  resizeMode={'stretch'}
-                  style={styles.cardSellerImage}
-                  source={{
-                    uri: seller.uri || 'https://blog.b2wmarketplace.com.br/wp-content/uploads/2017/11/Blog_Imagem-Principal_O-que-e-seller.png',
-                  }}
-                />
-                <Text
-                  numberOfLines={3}
-                  style={styles.cardSellerName}
+                <TouchableHighlight
+                  underlayColor="transparent"
+                  onPress={() => navigation.navigate('ProductsBySeller')}
                 >
-                  {seller.username}
-                </Text>
+                  <View>
+                    <Image
+                      resizeMode={'stretch'}
+                      style={styles.cardSellerImage}
+                      source={{
+                        uri: seller.uri || 'https://blog.b2wmarketplace.com.br/wp-content/uploads/2017/11/Blog_Imagem-Principal_O-que-e-seller.png',
+                      }}
+                    />
+                    <Text
+                      numberOfLines={3}
+                      style={styles.cardSellerName}
+                    >
+                      {seller.username}
+                    </Text>
+                  </View>
+                </TouchableHighlight>
               </Card>
             </View>
           ))}
@@ -67,7 +74,7 @@ export default ({ navigation }) => {
   const buildEmptyStateComponent = ({ emptyText } = {}) => (
     <View style={styles.emptyStateContainer} >
       <Icon
-        fill='#FD877A'
+        fill='#FD6C7B'
         style={styles.helpIcon}
         name='alert-circle-outline'
       />
@@ -124,7 +131,7 @@ export default ({ navigation }) => {
 
         <View style={styles.helpContainer}>
           <Icon
-            fill='#FD877A'
+            fill='#FD6C7B'
             style={styles.helpIcon}
             name='question-mark-circle-outline'
           />
@@ -186,14 +193,15 @@ const themedStyles = StyleService.create({
     marginVertical: 20,
     width: 300,
     textAlign: 'center',
-    color: '#FD877A'
+    fontWeight: 'bold',
+    color: '#FD6C7B'
   },
 
   emptyStateContainer: {
     borderRadius: 10,
     borderWidth: 3,
     borderStyle: 'dashed',
-    borderColor: '#FD877A',
+    borderColor: '#FD6C7B',
     flexDirection: 'column',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -202,7 +210,7 @@ const themedStyles = StyleService.create({
     height: 300,
   },
   emptyStateText: {
-    color: '#FD877A',
+    color: '#FD6C7B',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
