@@ -29,6 +29,10 @@ export const CarOutlineIcon = (style) => (
   <Icon {...style} name='car-outline'/>
 );
 
+export const CubeOutlineIcon = (style) => (
+  <Icon {...style} name='cube-outline'/>
+);
+
 export const BookmarkIcon = (style) => (
   <Icon {...style} name='bookmark'/>
 );

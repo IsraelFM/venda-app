@@ -45,7 +45,7 @@ export default ({ navigation }) => {
               <Card style={styles.cardSellerContainer}>
                 <TouchableHighlight
                   underlayColor="transparent"
-                  onPress={() => navigation.navigate('ProductsBySeller')}
+                  onPress={() => navigation.navigate('ProdutosPorVendedor')}
                 >
                   <View>
                     <Image
@@ -110,6 +110,7 @@ export default ({ navigation }) => {
       style={styles.safeArea}
       insets='top'>
       <TopNavigation
+        style={{ backgroundColor: '#EEE' }}
         accessoryLeft={renderDrawerAction}
       />
       <Divider />

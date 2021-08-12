@@ -123,7 +123,7 @@ export const HomeDrawer = ({ navigation }) => {
       <>
         <Divider />
         <View style={styles.footer}>
-          <Text style={styles.footerText}>{`Version ${version}`}</Text>
+          <Text style={styles.footerText}>{`Versão ${version}`}</Text>
         </View>
       </>
     </SafeAreaLayout>
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D7085A'
   },
   footerText: {
+    fontStyle: 'italic',
     fontSize: 16,
     marginLeft: 16,
     color: 'white',
