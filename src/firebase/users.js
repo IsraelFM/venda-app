@@ -7,6 +7,7 @@ export const {
   userType,
   createUserDocument,
   getCurrentUserDocument,
+  getAllSellers,
   updateCurrentUserDocument,
   deleteUserProduct
 } = {
@@ -46,6 +47,20 @@ export const {
     } catch (error) {
       return {
         error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
+  getAllSellers: async () => {
+    try {
+      const sellers = await firestore()
+        .collection('Users')
+        .where('type', '==', 'seller')
+        .get();
+
+      return sellers;
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao tentar buscar os vendedores. Estamos contactando o suporte'
       }
     }
   },

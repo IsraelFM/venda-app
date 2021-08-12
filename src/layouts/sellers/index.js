@@ -2,28 +2,27 @@ import React from 'react';
 import { View, Image, ScrollView } from 'react-native';
 import {
   Divider,
-  List,
-  ListItem,
   StyleService,
   TopNavigation,
   TopNavigationAction,
   useStyleSheet,
-  Button,
   Card,
   Text,
   Layout,
   Input,
   Icon
 } from '@ui-kitten/components';
+import { showMessage } from 'react-native-flash-message';
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
 import { searchOutlineIcon } from './extra/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
-// import {  } from '../../firebase/users';
+import { getAllSellers } from '../../firebase/users';
 
 export default ({ navigation }) => {
-  const [visible, setVisible] = React.useState(false);
+  const [afterProccess, setAfterProccess] = React.useState(1);
+  const [sellers, setSellers] = React.useState([]);
 
   const styles = useStyleSheet(themedStyles);
 
@@ -34,12 +33,76 @@ export default ({ navigation }) => {
     />
   );
 
+  const buildSellersComponent = ({ sellers }) => {
+    const sellersHidded = sellers.filter(seller => !!seller.hide);
+    if (sellers.length === sellersHidded.length) return buildEmptyStateComponent({ emptyText: 'Puxa... infelizmente ainda não há vendedores cadastrados com esse nome' });
+
+    return (
+      <KeyboardAvoidingView>
+        <ScrollView horizontal={true} >
+          {sellers.map((seller, key) => (
+            <View key={key} style={[styles.viewSellerContainer, seller.hide ? { display: 'none' } : {}]} >
+              <Card style={styles.cardSellerContainer}>
+                <Image
+                  resizeMode={'stretch'}
+                  style={styles.cardSellerImage}
+                  source={{
+                    uri: seller.uri || 'https://blog.b2wmarketplace.com.br/wp-content/uploads/2017/11/Blog_Imagem-Principal_O-que-e-seller.png',
+                  }}
+                />
+                <Text
+                  numberOfLines={3}
+                  style={styles.cardSellerName}
+                >
+                  {seller.username}
+                </Text>
+              </Card>
+            </View>
+          ))}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    )
+  };
+
+  const buildEmptyStateComponent = ({ emptyText } = {}) => (
+    <View style={styles.emptyStateContainer} >
+      <Icon
+        fill='#FD877A'
+        style={styles.helpIcon}
+        name='alert-circle-outline'
+      />
+      <Text style={styles.emptyStateText} >
+        {emptyText ? emptyText : 'Puxa... infelizmente ainda não há vendedores cadastrados'}
+      </Text>
+    </View>
+  );
+
+  navigation.addListener('focus', async () => {
+    const getAllSellersResponse = await getAllSellers();
+    let temp = [];
+
+    if (!getAllSellersResponse.error) {
+      if (!getAllSellersResponse.empty) {
+        getAllSellersResponse.forEach(seller => temp.push(seller.data()));
+      }
+
+      setSellers(temp);
+    } else {
+      showMessage({
+        message: 'Ops...',
+        description: getAllSellersResponse.error,
+        type: 'danger',
+        duration: 3000,
+        floating: true
+      });
+    }
+  });
+
   return (
     <SafeAreaLayout
       style={styles.safeArea}
       insets='top'>
       <TopNavigation
-        // style={{backgroundColor: '#000'}}
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
@@ -53,6 +116,10 @@ export default ({ navigation }) => {
           style={styles.inputSearch}
           textStyle={styles.inputSearchText}
           accessoryLeft={searchOutlineIcon}
+          onChangeText={text => {
+            sellers.forEach(seller => seller.hide = seller.username.toUpperCase().indexOf(text.toUpperCase()) !== -1 ? false : true);
+            setAfterProccess(afterProccess + 1);
+          }}
         />
 
         <View style={styles.helpContainer}>
@@ -66,28 +133,12 @@ export default ({ navigation }) => {
           </Text>
         </View>
 
-        <KeyboardAvoidingView>
-          <ScrollView horizontal={true} >
-            <View style={styles.viewSellerContainer} >
-              <Card style={styles.cardSellerContainer}>
-                <Image
-                  resizeMode={'stretch'}
-                  style={styles.cardSellerImage}
-                  source={{
-                    uri: 'https://blog.b2wmarketplace.com.br/wp-content/uploads/2017/11/Blog_Imagem-Principal_O-que-e-seller.png',
-                  }}
-                />
-                <Text
-                  numberOfLines={3}
-                  style={styles.cardSellerName}
-                >
-                  Cantina da Dona Silvia
-                </Text>
-              </Card>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        {sellers.length == 0
+          ? (!afterProccess && buildEmptyStateComponent())
+          : (!afterProccess && buildSellersComponent({ sellers }))
+        }
 
+        {afterProccess && buildSellersComponent({ sellers })}
       </Layout>
     </SafeAreaLayout>
   );
@@ -126,6 +177,7 @@ const themedStyles = StyleService.create({
   helpIcon: {
     width: 32,
     height: 32,
+    alignSelf: 'center',
     marginVertical: 20,
   },
   helpText: {
@@ -135,6 +187,25 @@ const themedStyles = StyleService.create({
     width: 300,
     textAlign: 'center',
     color: '#FD877A'
+  },
+
+  emptyStateContainer: {
+    borderRadius: 10,
+    borderWidth: 3,
+    borderStyle: 'dashed',
+    borderColor: '#FD877A',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginVertical: 50,
+    width: '100%',
+    height: 300,
+  },
+  emptyStateText: {
+    color: '#FD877A',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   viewSellerContainer: {
