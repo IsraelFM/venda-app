@@ -1,9 +1,11 @@
 import React from 'react';
-import { Image, ScrollView, TouchableHighlight, View } from 'react-native';
+import { Dimensions, Image, ScrollView, TouchableHighlight, View } from 'react-native';
 import {
+  Button,
   Card,
   Divider,
   Layout,
+  Modal,
   StyleService,
   Text,
   TopNavigation,
@@ -13,14 +15,15 @@ import {
 
 import { ArrowIosBackIcon } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
-import { cubeIconOutline, personIconOutline, pricetagsIconOutline } from './extra/icons';
+import { cubeIconOutline, personIconOutline, pricetagsIconOutline, shoppingCartIconOutline } from './extra/icons';
 
 export default ({ navigation, route }) => {
+  const [visible, setVisible] = React.useState(false);
+  const [modalProduct, setModalProduct] = React.useState({});
+  const windowWidth = Dimensions.get('window').width;
+
   const { sellerName, sellerImage } = route?.params || {};
   const products = Object.values(route?.params?.products || []);
-
-  // const [productsList, setProductsList] = React.useState(false);
-  console.log('______', products);
 
   const styles = useStyleSheet(themedStyles);
 
@@ -37,10 +40,75 @@ export default ({ navigation, route }) => {
     </Text>
   );
 
+  const renderModal = () => (
+    <Modal
+      visible={visible}
+      backdropStyle={styles.backdrop}
+      onBackdropPress={() => setVisible(false)}
+    >
+      <Card
+        style={{ width: windowWidth - 50 }}
+        disabled={true}
+      >
+        {!modalProduct.uri
+          ? cubeIconOutline({ fill: '#EEE', style: { ...styles.cardProductImage, ...{ height: 200 } } })
+          : (<Image
+            resizeMode={'stretch'}
+            style={styles.cardProductImage}
+            height={400}
+            source={{ uri: modalProduct.uri }}
+          />)
+        }
+
+        <Divider style={styles.cardDividerProductContent} />
+
+        <Text
+          numberOfLines={1}
+          style={styles.cardProductName}
+        >
+          {modalProduct.name}
+        </Text>
+        <View style={[styles.cardProductDescription, { maxHeight: 130, marginBottom: 20 }]}>
+          <ScrollView>
+            <Text>
+              {modalProduct.description}
+            </Text>
+          </ScrollView>
+        </View>
+
+        <View style={styles.cardProductPriceContainer} >
+          {pricetagsIconOutline({ fill: '#D7085A', style: { height: 20, width: 20 } })}
+          <Text style={styles.cardPriceText} >
+            R$ {modalProduct.price}
+          </Text>
+        </View>
+
+        <View style={styles.modalButtonsContainer} >
+          <Button
+            appearance='ghost'
+            size={'medium'}
+            status={'basic'}
+            onPress={() => setVisible(false)}
+          >
+            Ver outros
+          </Button>
+          <Button
+            accessoryLeft={shoppingCartIconOutline}
+            size={'large'}
+            onPress={() => setVisible(false)}
+          >
+            ADICIONAR +1
+          </Button>
+        </View>
+      </Card>
+    </Modal>
+  );
+
   return (
     <SafeAreaLayout
       style={styles.safeArea}
-      insets='top'>
+      insets='top'
+    >
       <TopNavigation
         title={renderHeaderText}
         alignment='center'
@@ -79,7 +147,10 @@ export default ({ navigation, route }) => {
               <Card key={key} style={styles.cardProductContainer}>
                 <TouchableHighlight
                   underlayColor="transparent"
-                  onPress={() => { console.log('AO CLICAR AQUI ABRIR MODAL PARA INFORMAR A QUANTIDADE') }}
+                  onPress={() => {
+                    setModalProduct(product);
+                    setVisible(true)
+                  }}
                 >
                   <View>
                     {!product.uri
@@ -103,22 +174,14 @@ export default ({ navigation, route }) => {
                     </Text>
                     <Text
                       numberOfLines={6}
-                      style={styles.cardProductDescription}
+                      style={[styles.cardProductDescription, { height: 100 }]}
                     >
                       {product.description}
                     </Text>
 
-                    <View style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-evenly',
-                      alignItems: 'center',
-                    }} >
+                    <View style={styles.cardProductPriceContainer} >
                       {pricetagsIconOutline({ fill: '#D7085A', style: { height: 20, width: 20 } })}
-                      <Text style={{
-                        color: '#D7085A',
-                        fontSize: 15,
-                        fontWeight: 'bold',
-                      }} >
+                      <Text style={styles.cardPriceText} >
                         R$ {product.price}
                       </Text>
                     </View>
@@ -128,8 +191,9 @@ export default ({ navigation, route }) => {
             ))}
           </View>
         </ScrollView>
-
       </Layout>
+
+      {renderModal()}
     </SafeAreaLayout>
   );
 };
@@ -231,7 +295,25 @@ const themedStyles = StyleService.create({
   },
   cardProductDescription: {
     marginVertical: 5,
-    height: 100,
     fontSize: 15,
+  },
+  cardProductPriceContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
+  cardPriceText: {
+    color: '#D7085A',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 20
   },
 });

@@ -13,6 +13,10 @@ export const cubeIconOutline = (style) => (
   <Icon {...style} name='cube-outline'/>
 );
 
+export const shoppingCartIconOutline = (style) => (
+  <Icon {...style} name='shopping-cart-outline'/>
+);
+
 export const pricetagsIconOutline = (style) => (
   <Icon {...style} name='pricetags-outline'/>
 );
