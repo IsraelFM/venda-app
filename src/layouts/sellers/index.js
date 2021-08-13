@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, ScrollView, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { View, Image, ScrollView, TouchableHighlight } from 'react-native';
 import {
   Divider,
   StyleService,
@@ -16,7 +16,7 @@ import { showMessage } from 'react-native-flash-message';
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
-import { searchOutlineIcon } from './extra/icons';
+import { personIconOutline, searchOutlineIcon } from './extra/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
 import { getAllSellers } from '../../firebase/users';
 
@@ -44,17 +44,27 @@ export default ({ navigation }) => {
             <View key={key} style={[styles.viewSellerContainer, seller.hide ? { display: 'none' } : {}]} >
               <Card style={styles.cardSellerContainer}>
                 <TouchableHighlight
-                  underlayColor="transparent"
-                  onPress={() => navigation.navigate('ProdutosPorVendedor')}
+                  underlayColor='transparent'
+                  onPress={() => {
+                    navigation.navigate('FazerPedido', {
+                      screen: 'ProdutosPorVendedor',
+                      params: {
+                        sellerName: seller.username,
+                        sellerImage: seller.uri,
+                        products: seller.products
+                      },
+                    });
+                  }}
                 >
                   <View>
-                    <Image
-                      resizeMode={'stretch'}
-                      style={styles.cardSellerImage}
-                      source={{
-                        uri: seller.uri || 'https://blog.b2wmarketplace.com.br/wp-content/uploads/2017/11/Blog_Imagem-Principal_O-que-e-seller.png',
-                      }}
-                    />
+                    {!seller.uri
+                      ? personIconOutline({ fill: '#EEE', style: {...styles.cardSellerImage, width: 150 } })
+                      : (<Image
+                        resizeMode={'stretch'}
+                        style={styles.cardSellerImage}
+                        source={{ uri: seller.uri }}
+                      />)
+                    }
                     <Text
                       numberOfLines={3}
                       style={styles.cardSellerName}
@@ -233,7 +243,6 @@ const themedStyles = StyleService.create({
   },
   cardSellerImage: {
     marginTop: -20,
-    marginHorizontal: -25,
     height: 120,
   },
   cardSellerName: {
