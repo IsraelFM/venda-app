@@ -11,15 +11,15 @@ import { HomeDrawer } from '../scenes/home/home-drawer.component';
 import { ProfileNavigator } from './profile.navigator';
 import { SellersNavigator } from './order.navigator';
 import { CartNavigator } from './cart.navigator';
+import { HistoryNavigator } from './history.navigator';
 
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
 //FIXME: Mudar para "Home"
-const initialTabRoute = 'Carrinho';
+const initialTabRoute = 'Histórico';
 
-// const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
-const ROOT_ROUTES = ['Home', 'Carrinho', 'Perfil'];
+const ROOT_ROUTES = ['Home', 'Carrinho', 'Perfil', 'Histórico'];
 
 const TabBarVisibilityOptions = ({ route }) => {
   const isNestedRoute = route.state?.index > 0;
@@ -37,7 +37,7 @@ const HomeTabsNavigator = () => (
     <BottomTab.Screen name='Home' component={SellersNavigator} />
     <BottomTab.Screen name='Carrinho' component={CartNavigator} />
     <BottomTab.Screen name='Perfil' component={ProfileNavigator} />
-    {/* <BottomTab.Screen name='Histórico' component={ProfileNavigator} /> */}
+    <BottomTab.Screen name='Histórico' component={HistoryNavigator} />
   </BottomTab.Navigator>
 );
 
