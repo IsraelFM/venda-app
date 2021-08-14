@@ -49,6 +49,7 @@ export default ({ navigation }) => {
                     navigation.navigate('FazerPedido', {
                       screen: 'ProdutosPorVendedor',
                       params: {
+                        sellerId: seller.id,
                         sellerName: seller.username,
                         sellerImage: seller.uri,
                         products: seller.products
@@ -100,7 +101,7 @@ export default ({ navigation }) => {
 
     if (!getAllSellersResponse.error) {
       if (!getAllSellersResponse.empty) {
-        getAllSellersResponse.forEach(seller => temp.push(seller.data()));
+        getAllSellersResponse.forEach(seller => temp.push({ id: seller.id, ...seller.data() }));
       }
 
       setSellers(temp);

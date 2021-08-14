@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Image, ScrollView, TouchableHighlight, View } from 'react-native';
+import { BackHandler, Dimensions, Image, ScrollView, TouchableHighlight, View } from 'react-native';
 import {
   Button,
   Card,
@@ -16,13 +16,16 @@ import {
 import { ArrowIosBackIcon } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { cubeIconOutline, personIconOutline, pricetagsIconOutline, shoppingCartIconOutline } from './extra/icons';
+import { showMessage } from 'react-native-flash-message';
+
+import { addToCart } from '../../firebase/orders';
 
 export default ({ navigation, route }) => {
   const [visible, setVisible] = React.useState(false);
   const [modalProduct, setModalProduct] = React.useState({});
   const windowWidth = Dimensions.get('window').width;
 
-  const { sellerName, sellerImage } = route?.params || {};
+  const { sellerId, sellerName, sellerImage } = route?.params || {};
   const products = Object.values(route?.params?.products || []);
 
   const styles = useStyleSheet(themedStyles);
@@ -95,7 +98,7 @@ export default ({ navigation, route }) => {
           <Button
             accessoryLeft={shoppingCartIconOutline}
             size={'large'}
-            onPress={() => setVisible(false)}
+            onPress={addOneToCart}
           >
             ADICIONAR +1
           </Button>
@@ -103,6 +106,46 @@ export default ({ navigation, route }) => {
       </Card>
     </Modal>
   );
+
+  const addOneToCart = async () => {
+    const addToCartResponse = await addToCart({
+      sellerId,
+      newProduct: {
+        name: modalProduct.name,
+        uri: modalProduct.uri,
+        unitPrice: modalProduct.price,
+        quantity: 1,
+      }
+    });
+
+    if (addToCartResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: addToCartResponse.error,
+        type: 'danger',
+        floating: true,
+        duration: 4000,
+      });
+    } else {
+      showMessage({
+        message: addToCartResponse.success,
+        type: 'success',
+        floating: true,
+        duration: 2000,
+      });
+    }
+
+    setVisible(false)
+  };
+
+  BackHandler.addEventListener('hardwareBackPress', function () {
+    if (visible) {
+      setVisible(false);
+      return true;
+    }
+
+    navigation.goBack();
+  });
 
   return (
     <SafeAreaLayout
@@ -145,6 +188,17 @@ export default ({ navigation, route }) => {
           <View style={styles.flexboxProductContainer}>
             {products.map((product, key) => (
               <Card key={key} style={styles.cardProductContainer}>
+                <Button
+                  style={styles.cardCartButtonProductContainer}
+                  accessoryLeft={shoppingCartIconOutline}
+                  size={'small'}
+                  onPress={addOneToCart}
+                >
+                  <Text style={styles.cardCartTextProduct} >
+                    +1
+                  </Text>
+                </Button>
+
                 <TouchableHighlight
                   underlayColor="transparent"
                   onPress={() => {
@@ -265,6 +319,21 @@ const themedStyles = StyleService.create({
     flexWrap: 'wrap',
     justifyContent: 'space-evenly',
     width: '100%',
+  },
+  cardCartButtonProductContainer: {
+    paddingHorizontal: 0,
+    borderRadius: 20,
+    borderColor: '#E5E5E5',
+    borderWidth: 4,
+    position: 'absolute',
+    right: -1,
+    top: -1,
+    zIndex: 90000,
+  },
+  cardCartTextProduct: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
   cardProductContainer: {
     borderWidth: 3,
