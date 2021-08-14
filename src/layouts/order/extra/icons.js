@@ -20,3 +20,23 @@ export const shoppingCartIconOutline = (style) => (
 export const pricetagsIconOutline = (style) => (
   <Icon {...style} name='pricetags-outline'/>
 );
+
+export const minusIcon = (style) => (
+  <Icon {...style} name='minus'/>
+);
+
+export const plusIcon = (style) => (
+  <Icon {...style} name='plus'/>
+);
+
+export const moreHorizontalIconOutline = (style) => (
+  <Icon {...style} name='more-horizontal-outline'/>
+);
+
+export const creditCardIconOutline = (style) => (
+  <Icon {...style} name='credit-card-outline'/>
+);
+
+export const moneyBillIcon = (style) => (
+  <Icon {...style} name='money-bill'/>
+);

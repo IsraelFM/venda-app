@@ -3,6 +3,9 @@ import auth from '@react-native-firebase/auth';
 
 export const {
   addToCart,
+  getCartFromCurrentUser,
+  createOrder,
+  clearCartFromCurrentUser,
 } = {
   addToCart: async ({
     newProduct,
@@ -51,5 +54,68 @@ export const {
       }
     }
   },
-  // TODO: Cart (temporary) != Order (permanent)
+  getCartFromCurrentUser: async () => {
+    try {
+      const cart = await firestore()
+        .collection('Cart')
+        .doc(auth().currentUser.uid)
+        .get();
+
+      return cart.data();
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
+  createOrder: async ({
+    paymentMethod,
+    deliveryMethod,
+    products,
+    sellerId,
+    totalPrice,
+  }) => {
+
+    try {
+      await firestore()
+        .collection('Order')
+        .doc()
+        .set({
+          paymentMethod,
+          deliveryMethod,
+          products,
+          totalPrice,
+          sellerId,
+          buyerId: auth().currentUser.uid,
+        });
+
+      // if (!(await clearCartFromCurrentUser())) {
+      //   return {
+      //     error: 'Um erro aconteceu ao limpar o seu carrinho',
+      //   }
+      // }
+
+      return {
+        success: 'Pedido enviado com sucesso'
+      }
+    } catch (error) {
+      console.log(error.message);
+      return {
+        error: 'Um erro aconteceu ao tentar enviar seu pedido. Estamos contactando o suporte'
+      }
+    }
+  },
+  clearCartFromCurrentUser: async () => {
+    try {
+      const cartDeleted = await firestore()
+        .collection('Cart')
+        .doc(auth().currentUser.uid)
+        .delete();
+
+      console.log(cartDeleted);
+      if (cartDeleted) return true;
+    } catch (error) {
+      return false;
+    }
+  }
 };

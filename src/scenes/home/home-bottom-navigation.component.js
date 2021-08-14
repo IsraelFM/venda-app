@@ -3,7 +3,7 @@ import { Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomNavigationTab, BottomNavigation, Divider, StyleService } from '@ui-kitten/components';
 
-import { PersonIconOutline, HomeIconOutline, CubeOutlineIcon } from '../../components/icons';
+import { PersonIconOutline, HomeIconOutline, ShoppingCartIconOutline } from '../../components/icons';
 
 const useVisibilityAnimation = (visible) => {
 
@@ -53,9 +53,13 @@ export const HomeBottomNavigation = ({ navigation, state, descriptors }) => {
           title='Home'
           icon={HomeIconOutline}
         />
-        <BottomNavigationTab
+        {/* <BottomNavigationTab
           title='Buscar Produtos'
           icon={CubeOutlineIcon}
+        /> */}
+        <BottomNavigationTab
+          title='Carrinho'
+          icon={ShoppingCartIconOutline}
         />
         <BottomNavigationTab
           title='Perfil'

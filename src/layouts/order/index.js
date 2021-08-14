@@ -59,7 +59,7 @@ export default ({ navigation }) => {
                 >
                   <View>
                     {!seller.uri
-                      ? personIconOutline({ fill: '#EEE', style: {...styles.cardSellerImage, width: 150 } })
+                      ? personIconOutline({ fill: '#EEE', style: { ...styles.cardSellerImage, width: 150 } })
                       : (<Image
                         resizeMode={'stretch'}
                         style={styles.cardSellerImage}

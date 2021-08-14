@@ -2,8 +2,8 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
-import { SellersScreen } from '../scenes/sellers/sellers.component';
-import { ProductsBySellerScreen } from '../scenes/sellers/products-seller.component';
+import { SellersScreen } from '../scenes/order/sellers.component';
+import { ProductsBySellerScreen } from '../scenes/order/products-seller.component';
 
 const TopTab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();

@@ -30,7 +30,7 @@ export default ({ navigation, route }) => {
 
   const styles = useStyleSheet(themedStyles);
 
-  const renderDrawerAction = () => (
+  const renderGoBackAction = () => (
     <TopNavigationAction
       icon={ArrowIosBackIcon}
       onPress={() => navigation.canGoBack() && navigation.goBack()}
@@ -156,7 +156,7 @@ export default ({ navigation, route }) => {
         title={renderHeaderText}
         alignment='center'
         style={{ backgroundColor: '#EEE' }}
-        accessoryLeft={renderDrawerAction}
+        accessoryLeft={renderGoBackAction}
       />
 
       <Layout style={styles.formContainer} level='1'>

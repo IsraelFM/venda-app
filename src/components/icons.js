@@ -9,6 +9,10 @@ export const ArrowIosForwardIcon = (style) => (
   <Icon {...style} name='arrow-ios-forward'/>
 );
 
+export const ShoppingCartIconOutline = (style) => (
+  <Icon {...style} name='shopping-cart-outline'/>
+);
+
 export const BookIcon = (style) => (
   <Icon {...style} name='book'/>
 );
