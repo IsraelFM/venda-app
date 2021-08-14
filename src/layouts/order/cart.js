@@ -16,7 +16,7 @@ import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 
 import { deleteProductFromCart, getCartFromCurrentUser, updateQuantityProductCart } from '../../firebase/orders';
 import { CloseIcon, MenuIcon } from '../../components/icons';
-import { minusIcon, moreHorizontalIconOutline, plusIcon } from './extra/icons';
+import { minusIcon, plusIcon } from './extra/icons';
 import { showMessage } from 'react-native-flash-message';
 
 export default ({ navigation }) => {
@@ -28,13 +28,6 @@ export default ({ navigation }) => {
     <TopNavigationAction
       icon={MenuIcon}
       onPress={navigation.toggleDrawer}
-    />
-  );
-
-  const renderOptionsAction = () => (
-    <TopNavigationAction
-      icon={moreHorizontalIconOutline}
-      onPress={navigation.toggleDrawer}//Abrir "modal" com um botão apenas para limpar tudo
     />
   );
 
@@ -179,7 +172,6 @@ export default ({ navigation }) => {
         alignment='center'
         style={{ backgroundColor: '#EEE' }}
         accessoryLeft={renderDrawerAction}
-        accessoryRight={renderOptionsAction}
       />
 
       {!cart
@@ -216,14 +208,6 @@ export default ({ navigation }) => {
               </View>
             </>
           )}
-      {/* Botão para esvaziar carrinho */}
-      {/* <Button
-        style={[styles.iconButton, styles.removeButton]}
-        appearance='ghost'
-        status='basic'
-        accessoryLeft={CloseIcon}
-        onPress={onRemoveButtonPress}
-      /> */}
     </SafeAreaLayout>
   );
 };
