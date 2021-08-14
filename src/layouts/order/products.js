@@ -107,13 +107,13 @@ export default ({ navigation, route }) => {
     </Modal>
   );
 
-  const addOneToCart = async () => {
+  const addOneToCart = async ({ product }) => {
     const addToCartResponse = await addToCart({
       sellerId,
       newProduct: {
-        name: modalProduct.name,
-        uri: modalProduct.uri,
-        unitPrice: modalProduct.price,
+        name: product.name || modalProduct.name,
+        uri: product.uri || modalProduct.uri,
+        unitPrice: product.price || modalProduct.price,
         quantity: 1,
       }
     });
@@ -131,7 +131,7 @@ export default ({ navigation, route }) => {
         message: addToCartResponse.success,
         type: 'success',
         floating: true,
-        duration: 2000,
+        duration: 1500,
       });
     }
 
@@ -192,7 +192,7 @@ export default ({ navigation, route }) => {
                   style={styles.cardCartButtonProductContainer}
                   accessoryLeft={shoppingCartIconOutline}
                   size={'small'}
-                  onPress={addOneToCart}
+                  onPress={() => { addOneToCart({ product }); }}
                 >
                   <Text style={styles.cardCartTextProduct} >
                     +1

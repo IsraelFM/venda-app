@@ -51,6 +51,7 @@ export const {
         success: 'Pedido adicionado ao carrinho'
       }
     } catch (error) {
+      console.log(error);
       return {
         error: 'Um erro aconteceu ao tentar adicionar o produto ao seu carrinho. Estamos contatando o suporte'
       }
@@ -71,13 +72,22 @@ export const {
       cart.totalPrice = `${cart.totalPrice.toFixed(2)}`.replace(/\./g, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
       cart.products = cart.products.filter(productDetails => productDetails.name !== productName);
-      console.log(cart);
-      // await firestore()
-      //   .collection('Cart')
-      //   .doc(auth().currentUser.uid)
-      //   .set(cart);
 
-      return { cart };
+      if (cart.products.length === 0) {
+        await firestore()
+          .collection('Cart')
+          .doc(auth().currentUser.uid)
+          .delete();
+
+        return { cart: {} };
+      } else {
+        await firestore()
+          .collection('Cart')
+          .doc(auth().currentUser.uid)
+          .set(cart);
+
+        return { cart };
+      }
     } catch (error) {
       return {
         error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
