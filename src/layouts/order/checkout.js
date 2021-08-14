@@ -43,12 +43,9 @@ export default ({ navigation, route }) => {
   );
 
   const createOrderAction = async () => {
-    const paymentMethod = payment[selectedPaymentIndex];
-    const deliveryMethod = delivery[selectedDeliveryIndex];
-
     const createOrderResponse = await createOrder({
-      paymentMethod,
-      deliveryMethod,
+      paymentMethod: payment[selectedPaymentIndex],
+      deliveryMethod: delivery[selectedDeliveryIndex],
       products,
       sellerId,
       totalPrice,

@@ -3,7 +3,6 @@ import { Image, ScrollView, View } from 'react-native';
 
 import {
   Button,
-  Divider,
   Layout,
   Spinner,
   StyleService,
@@ -14,9 +13,10 @@ import {
 } from '@ui-kitten/components';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 
-import { getCartFromCurrentUser } from '../../firebase/orders';
+import { getCartFromCurrentUser, updateQuantityProductCart } from '../../firebase/orders';
 import { CloseIcon, MenuIcon } from '../../components/icons';
 import { minusIcon, moreHorizontalIconOutline, plusIcon } from './extra/icons';
+import { showMessage } from 'react-native-flash-message';
 
 export default ({ navigation }) => {
   const [cart, setCart] = React.useState(null);
@@ -79,8 +79,8 @@ export default ({ navigation }) => {
                   style={[styles.iconButton, styles.amountButton]}
                   size='small'
                   accessoryLeft={minusIcon}
-                  onPress={onMinusButtonPress}
-                  disabled={!product.quantity > 1}
+                  onPress={() => { quantityProductPress({ operation: -1, productName: product.name }) }}
+                  disabled={!(product.quantity > 1)}
                 />
                 <Text
                   style={styles.amount}
@@ -91,7 +91,7 @@ export default ({ navigation }) => {
                   style={[styles.iconButton, styles.amountButton]}
                   size='small'
                   accessoryLeft={plusIcon}
-                  onPress={onPlusButtonPress}
+                  onPress={() => { quantityProductPress({ operation: +1, productName: product.name }) }}
                 />
               </View>
               <Button
@@ -113,11 +113,24 @@ export default ({ navigation }) => {
     // limpa o carrinho
   };
 
-  const onMinusButtonPress = () => {
-    // Adiciona Item
-  };
-  const onPlusButtonPress = () => {
-    // Remove item
+  const quantityProductPress = async ({ operation, productName }) => {
+    const updateCartResponse = await updateQuantityProductCart({
+      productName,
+      operation
+    });
+
+    if (updateCartResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updateCartResponse.error,
+        type: 'danger',
+        floating: true,
+        duration: 4000,
+      });
+    } else {
+      setCart(updateCartResponse.cart);
+    }
+    // TODO: Atualiza tela
   };
 
   navigation.addListener('focus', async () => {
@@ -205,7 +218,7 @@ const themedStyles = StyleService.create({
   },
   formContainer: {
     flex: 1,
-    paddingTop: 15,
+    paddingVertical: 15,
     paddingHorizontal: 15,
     backgroundColor: 'color-success-400',
   },

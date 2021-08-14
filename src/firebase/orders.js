@@ -3,6 +3,7 @@ import auth from '@react-native-firebase/auth';
 
 export const {
   addToCart,
+  updateQuantityProductCart,
   getCartFromCurrentUser,
   createOrder,
   clearCartFromCurrentUser,
@@ -51,6 +52,37 @@ export const {
     } catch (error) {
       return {
         error: 'Um erro aconteceu ao tentar adicionar o produto ao seu carrinho. Estamos contatando o suporte'
+      }
+    }
+  },
+  updateQuantityProductCart: async ({
+    productName,
+    operation
+  }) => {
+    try {
+      const cart = (await firestore()
+        .collection('Cart')
+        .doc(auth().currentUser.uid)
+        .get()).data();
+
+      const product = cart.products.find(productDetails => productDetails.name === productName);
+
+      if (product.quantity + operation >= 1) {
+        product.quantity += operation;
+
+        cart.totalPrice = (+cart.totalPrice.replace(/\./g, '').replace(/,/g, '.') + (+product.unitPrice.replace(/\./g, '').replace(/,/g, '.') * operation))
+        cart.totalPrice = `${cart.totalPrice.toFixed(2)}`.replace(/\./g, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+        await firestore()
+          .collection('Cart')
+          .doc(auth().currentUser.uid)
+          .set(cart);
+      }
+
+      return { cart };
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
       }
     }
   },
