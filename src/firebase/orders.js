@@ -4,6 +4,7 @@ import auth from '@react-native-firebase/auth';
 export const {
   addToCart,
   updateQuantityProductCart,
+  deleteProductFromCart,
   getCartFromCurrentUser,
   createOrder,
   clearCartFromCurrentUser,
@@ -55,6 +56,34 @@ export const {
       }
     }
   },
+  deleteProductFromCart: async ({
+    productName,
+  }) => {
+    try {
+      const cart = (await firestore()
+        .collection('Cart')
+        .doc(auth().currentUser.uid)
+        .get()).data();
+
+      const product = cart.products.find(productDetails => productDetails.name === productName);
+
+      cart.totalPrice = (+cart.totalPrice.replace(/\./g, '').replace(/,/g, '.') - (+product.unitPrice.replace(/\./g, '').replace(/,/g, '.') * product.quantity))
+      cart.totalPrice = `${cart.totalPrice.toFixed(2)}`.replace(/\./g, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+      cart.products = cart.products.filter(productDetails => productDetails.name !== productName);
+      console.log(cart);
+      // await firestore()
+      //   .collection('Cart')
+      //   .doc(auth().currentUser.uid)
+      //   .set(cart);
+
+      return { cart };
+    } catch (error) {
+      return {
+        error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
   updateQuantityProductCart: async ({
     productName,
     operation
@@ -93,7 +122,7 @@ export const {
         .doc(auth().currentUser.uid)
         .get();
 
-      return cart.data();
+      return cart.exists ? cart.data() : {};
     } catch (error) {
       return {
         error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
@@ -121,11 +150,11 @@ export const {
           buyerId: auth().currentUser.uid,
         });
 
-      // if (!(await clearCartFromCurrentUser())) {
-      //   return {
-      //     error: 'Um erro aconteceu ao limpar o seu carrinho',
-      //   }
-      // }
+      if (!(await clearCartFromCurrentUser())) {
+        return {
+          error: 'Um erro aconteceu ao limpar o seu carrinho',
+        }
+      }
 
       return {
         success: 'Pedido enviado com sucesso'
@@ -139,13 +168,12 @@ export const {
   },
   clearCartFromCurrentUser: async () => {
     try {
-      const cartDeleted = await firestore()
+      await firestore()
         .collection('Cart')
         .doc(auth().currentUser.uid)
         .delete();
 
-      console.log(cartDeleted);
-      if (cartDeleted) return true;
+      return true;
     } catch (error) {
       return false;
     }

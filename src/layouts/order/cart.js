@@ -3,6 +3,7 @@ import { Image, ScrollView, View } from 'react-native';
 
 import {
   Button,
+  Icon,
   Layout,
   Spinner,
   StyleService,
@@ -13,7 +14,7 @@ import {
 } from '@ui-kitten/components';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 
-import { getCartFromCurrentUser, updateQuantityProductCart } from '../../firebase/orders';
+import { deleteProductFromCart, getCartFromCurrentUser, updateQuantityProductCart } from '../../firebase/orders';
 import { CloseIcon, MenuIcon } from '../../components/icons';
 import { minusIcon, moreHorizontalIconOutline, plusIcon } from './extra/icons';
 import { showMessage } from 'react-native-flash-message';
@@ -52,65 +53,85 @@ export default ({ navigation }) => {
     </View>
   );
 
-  const buildCartComponent = ({ cart }) => {
-    if (cart && cart.products.length === 0) {
-      // buildEmptyStateComponent();
-      return (<Text>ERRRO</Text>)
-    };
+  const buildEmptyStateComponent = () => (
+    <View style={styles.emptyStateContainer} >
+      <Icon
+        fill='#FD6C7B'
+        style={styles.helpIcon}
+        name='alert-circle-outline'
+      />
+      <Text style={styles.emptyStateText} >
+        Seu carrinho está vazio
+      </Text>
+    </View>
+  );
 
-    return (
-      <ScrollView>
-        {cart.products.map((product, key) => (
-          <View style={styles.cardCartContainer} key={key}>
-            <Image
-              style={styles.image}
-              source={{ uri: product.uri }}
-            />
-            <View style={styles.detailsContainer}>
-              <Text category='h5' style={styles.cardCartName} >
-                {product.name}
-              </Text>
-              <Text category='s2'>
-                R$ {product.unitPrice} / unidade
-              </Text>
+  const buildCartComponent = ({ cart }) => (
+    <ScrollView>
+      {cart.products.map((product, key) => (
+        <View style={styles.cardCartContainer} key={key}>
+          <Image
+            style={styles.image}
+            source={{ uri: product.uri }}
+          />
+          <View style={styles.detailsContainer}>
+            <Text category='h5' style={styles.cardCartName} >
+              {product.name}
+            </Text>
+            <Text category='s2'>
+              R$ {product.unitPrice} / unidade
+            </Text>
 
-              <View style={styles.amountContainer}>
-                <Button
-                  style={[styles.iconButton, styles.amountButton]}
-                  size='small'
-                  accessoryLeft={minusIcon}
-                  onPress={() => { quantityProductPress({ operation: -1, productName: product.name }) }}
-                  disabled={!(product.quantity > 1)}
-                />
-                <Text
-                  style={styles.amount}
-                  category='s2'>
-                  {`${product.quantity}`}
-                </Text>
-                <Button
-                  style={[styles.iconButton, styles.amountButton]}
-                  size='small'
-                  accessoryLeft={plusIcon}
-                  onPress={() => { quantityProductPress({ operation: +1, productName: product.name }) }}
-                />
-              </View>
+            <View style={styles.amountContainer}>
               <Button
-                style={[styles.iconButton, styles.removeButton]}
-                appearance='ghost'
-                status='basic'
-                size={'large'}
-                accessoryLeft={CloseIcon}
-                onPress={onRemoveButtonPress}
+                style={[styles.iconButton, styles.amountButton]}
+                size='small'
+                accessoryLeft={minusIcon}
+                onPress={() => { quantityProductPress({ operation: -1, productName: product.name }) }}
+                disabled={!(product.quantity > 1)}
+              />
+              <Text
+                style={styles.amount}
+                category='s2'>
+                {`${product.quantity}`}
+              </Text>
+              <Button
+                style={[styles.iconButton, styles.amountButton]}
+                size='small'
+                accessoryLeft={plusIcon}
+                onPress={() => { quantityProductPress({ operation: +1, productName: product.name }) }}
               />
             </View>
+            <Button
+              style={[styles.iconButton, styles.removeButton]}
+              appearance='ghost'
+              status='basic'
+              size={'large'}
+              accessoryLeft={CloseIcon}
+              onPress={() => { onRemoveButtonPress({ productName: product.name }) }}
+            />
           </View>
-        ))}
-      </ScrollView>
-    );
-  };
+        </View>
+      ))}
+    </ScrollView>
+  );
 
-  const onRemoveButtonPress = () => {
-    // limpa o carrinho
+  const onRemoveButtonPress = async ({ productName }) => {
+    const updateCartResponse = await deleteProductFromCart({
+      productName,
+    });
+
+    if (updateCartResponse.error) {
+      showMessage({
+        message: 'Ops...',
+        description: updateCartResponse.error,
+        type: 'danger',
+        floating: true,
+        duration: 4000,
+      });
+    } else {
+      setCart(updateCartResponse.cart);
+    }
   };
 
   const quantityProductPress = async ({ operation, productName }) => {
@@ -130,7 +151,6 @@ export default ({ navigation }) => {
     } else {
       setCart(updateCartResponse.cart);
     }
-    // TODO: Atualiza tela
   };
 
   navigation.addListener('focus', async () => {
@@ -164,36 +184,38 @@ export default ({ navigation }) => {
 
       {!cart
         ? buildLoadingComponent()
-        : (
-          <>
-            <Layout style={styles.formContainer} level='1'>
-              {buildCartComponent({ cart })}
-            </Layout>
-            <View style={styles.totalPriceContainer}>
-              <View>
-                <Text style={styles.totalPriceTitle}>
-                  Preço Total
-                </Text>
-                <Text style={styles.totalPriceValue}>
-                  R$ {cart.totalPrice}
-                </Text>
+        : (Object.values(cart).length === 0)
+          ? buildEmptyStateComponent()
+          : (
+            <>
+              <Layout style={styles.formContainer} level='1'>
+                {buildCartComponent({ cart })}
+              </Layout>
+              <View style={styles.totalPriceContainer}>
+                <View>
+                  <Text style={styles.totalPriceTitle}>
+                    Preço Total
+                  </Text>
+                  <Text style={styles.totalPriceValue}>
+                    R$ {cart.totalPrice}
+                  </Text>
+                </View>
+                <Button
+                  style={styles.checkoutButton}
+                  status={'control'}
+                  size='giant'
+                  onPress={() => {
+                    navigation.navigate('FecharPedido', {
+                      screen: 'Checkout',
+                      params: cart,
+                    });
+                  }}
+                >
+                  CONTINUAR
+                </Button>
               </View>
-              <Button
-                style={styles.checkoutButton}
-                status={'control'}
-                size='giant'
-                onPress={() => {
-                  navigation.navigate('FecharPedido', {
-                    screen: 'Checkout',
-                    params: cart,
-                  });
-                }}
-              >
-                CONTINUAR
-              </Button>
-            </View>
-          </>
-        )}
+            </>
+          )}
       {/* Botão para esvaziar carrinho */}
       {/* <Button
         style={[styles.iconButton, styles.removeButton]}
@@ -297,5 +319,26 @@ const themedStyles = StyleService.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'right'
+  },
+
+  emptyStateContainer: {
+    flex: 1,
+    borderColor: '#FD6C7B',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    margin: 50,
+  },
+  helpIcon: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+  emptyStateText: {
+    color: '#FD6C7B',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
