@@ -20,7 +20,7 @@ export const {
 
       if (!productFromSameSeller) {
         return {
-          error: 'Você está tentando adicionar um produto de outro vendedor'
+          error: 'Você está tentando adicionar um produto de outro vendedor! \nSe quiser continuar, limpe seu carrinho'
         }
       }
 
