@@ -18,7 +18,7 @@ export const {
   }) => {
     try {
       const userCart = (await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .get()).data();
 
@@ -42,7 +42,7 @@ export const {
       totalPrice = (+totalPrice.replace(/\./g, '').replace(/,/g, '.') + +newProduct.unitPrice.replace(/\./g, '').replace(/,/g, '.'))
 
       await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .set({
           products,
@@ -66,7 +66,7 @@ export const {
   }) => {
     try {
       const cart = (await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .get()).data();
 
@@ -79,14 +79,14 @@ export const {
 
       if (cart.products.length === 0) {
         await firestore()
-          .collection('Cart')
+          .collection('Carts')
           .doc(auth().currentUser.uid)
           .delete();
 
         return { cart: {} };
       } else {
         await firestore()
-          .collection('Cart')
+          .collection('Carts')
           .doc(auth().currentUser.uid)
           .set(cart);
 
@@ -104,7 +104,7 @@ export const {
   }) => {
     try {
       const cart = (await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .get()).data();
 
@@ -117,7 +117,7 @@ export const {
         cart.totalPrice = `${cart.totalPrice.toFixed(2)}`.replace(/\./g, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
         await firestore()
-          .collection('Cart')
+          .collection('Carts')
           .doc(auth().currentUser.uid)
           .set(cart);
       }
@@ -132,7 +132,7 @@ export const {
   getCartFromCurrentUser: async () => {
     try {
       const cart = await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .get();
 
@@ -153,7 +153,7 @@ export const {
   }) => {
     try {
       await firestore()
-        .collection('Order')
+        .collection('Orders')
         .doc()
         .set({
           paymentMethod,
@@ -186,7 +186,7 @@ export const {
   clearCartFromCurrentUser: async () => {
     try {
       await firestore()
-        .collection('Cart')
+        .collection('Carts')
         .doc(auth().currentUser.uid)
         .delete();
 
@@ -200,7 +200,7 @@ export const {
       const fieldType = await userType() === 'seller' ? 'sellerId' : 'buyerId';
 
       const orders = await firestore()
-        .collection('Order')
+        .collection('Orders')
         .where(fieldType, '==', auth().currentUser.uid)
         .orderBy('date' , 'desc')
         .get();
