@@ -16,8 +16,7 @@ import { HistoryNavigator } from './history.navigator';
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-//FIXME: Mudar para "Home"
-const initialTabRoute = 'Histórico';
+const initialTabRoute = 'Home';
 
 const ROOT_ROUTES = ['Home', 'Carrinho', 'Perfil', 'Histórico'];
 

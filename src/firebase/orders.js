@@ -1,5 +1,6 @@
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { getCurrentUserDocument, userType } from './users';
 
 export const {
   addToCart,
@@ -8,10 +9,12 @@ export const {
   getCartFromCurrentUser,
   createOrder,
   clearCartFromCurrentUser,
+  getOrders,
 } = {
   addToCart: async ({
     newProduct,
     sellerId,
+    sellerName,
   }) => {
     try {
       const userCart = (await firestore()
@@ -44,6 +47,7 @@ export const {
         .set({
           products,
           sellerId,
+          sellerName,
           totalPrice: `${totalPrice.toFixed(2)}`.replace(/\./g, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
         });
 
@@ -144,9 +148,9 @@ export const {
     deliveryMethod,
     products,
     sellerId,
+    sellerName,
     totalPrice,
   }) => {
-
     try {
       await firestore()
         .collection('Order')
@@ -157,7 +161,10 @@ export const {
           products,
           totalPrice,
           sellerId,
+          sellerName,
+          buyerName: (await getCurrentUserDocument()).username,
           buyerId: auth().currentUser.uid,
+          date: new Date(),
         });
 
       if (!(await clearCartFromCurrentUser())) {
@@ -187,5 +194,23 @@ export const {
     } catch (error) {
       return false;
     }
-  }
+  },
+  getOrders: async () => {
+    try {
+      const fieldType = await userType() === 'seller' ? 'sellerId' : 'buyerId';
+
+      const orders = await firestore()
+        .collection('Order')
+        .where(fieldType, '==', auth().currentUser.uid)
+        .orderBy('date' , 'desc')
+        .get();
+
+      return orders;
+    } catch (error) {
+      console.log(error);
+      return {
+        error: 'Um erro aconteceu ao tentar buscar seu perfil. Estamos contactando o suporte'
+      }
+    }
+  },
 };

@@ -24,8 +24,7 @@ export default ({ navigation, route }) => {
   const payment = ['money', 'credit-card'];
   const [selectedPaymentIndex, setSelectedPaymentIndex] = React.useState(0);
 
-  const { sellerId, totalPrice, products } = route?.params || {};
-  console.log({ sellerId, totalPrice, products })
+  const { sellerId, sellerName, totalPrice, products } = route?.params || {};
 
   const styles = useStyleSheet(themedStyles);
 
@@ -48,6 +47,7 @@ export default ({ navigation, route }) => {
       deliveryMethod: delivery[selectedDeliveryIndex],
       products,
       sellerId,
+      sellerName,
       totalPrice,
     });
 

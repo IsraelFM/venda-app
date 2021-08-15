@@ -10,7 +10,7 @@ import {
   Text,
   Layout,
   Input,
-  Icon
+  Icon,
 } from '@ui-kitten/components';
 import { showMessage } from 'react-native-flash-message';
 
@@ -18,7 +18,7 @@ import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
 import { personIconOutline, searchOutlineIcon } from './extra/icons';
 import { KeyboardAvoidingView } from '../../components/keyboard-view';
-import { getAllSellers } from '../../firebase/users';
+import { getAllSellers, userId } from '../../firebase/users';
 
 export default ({ navigation }) => {
   const [afterProccess, setAfterProccess] = React.useState(1);
@@ -101,7 +101,7 @@ export default ({ navigation }) => {
 
     if (!getAllSellersResponse.error) {
       if (!getAllSellersResponse.empty) {
-        getAllSellersResponse.forEach(seller => temp.push({ id: seller.id, ...seller.data() }));
+        getAllSellersResponse.forEach(seller => seller.id != userId() && temp.push({ id: seller.id, ...seller.data() }));
       }
 
       setSellers(temp);

@@ -18,8 +18,12 @@ import { deleteProductFromCart, getCartFromCurrentUser, updateQuantityProductCar
 import { CloseIcon, MenuIcon } from '../../components/icons';
 import { minusIcon, plusIcon } from './extra/icons';
 import { showMessage } from 'react-native-flash-message';
+import { userIsLogged, userType } from '../../firebase/users';
+import { LogInOutlineIcon } from '../auth/extra/icons';
+import { PersonAddOutlineIcon } from '../profile/extra/icons';
 
 export default ({ navigation }) => {
+  const [typeOfUser, setTypeOfUser] = React.useState('buyer');
   const [cart, setCart] = React.useState(null);
 
   const styles = useStyleSheet(themedStyles);
@@ -37,14 +41,28 @@ export default ({ navigation }) => {
     </Text>
   );
 
-  const buildLoadingComponent = () => (
-    <View style={styles.loadingContainer} >
-      <Spinner size='giant' />
-      <Text status='danger' style={styles.loadingText} >
-        Buscando itens do carrinho...
-      </Text>
-    </View>
-  );
+  const buildLoadingComponent = () => {
+    if (!userIsLogged()) {
+      return (<View style={styles.authButtonsContainer} >
+        <Button
+          style={styles.authButtons}
+          onPress={() => navigation.navigate('Auth')}
+          size='giant'
+          accessoryLeft={LogInOutlineIcon}
+          accessoryRight={PersonAddOutlineIcon}
+        >
+          Clique aqui para realizar o{'\n'} LOGIN / CADASTRO
+        </Button>
+      </View>)
+    } else {
+      return (<View style={styles.loadingContainer} >
+        <Spinner size='giant' />
+        <Text status='danger' style={styles.loadingText} >
+          Buscando itens do carrinho...
+        </Text>
+      </View>)
+    }
+  };
 
   const buildEmptyStateComponent = () => (
     <View style={styles.emptyStateContainer} >
@@ -54,7 +72,10 @@ export default ({ navigation }) => {
         name='alert-circle-outline'
       />
       <Text style={styles.emptyStateText} >
-        Seu carrinho está vazio
+        {typeOfUser === 'buyer'
+          ? 'Seu carrinho está vazio'
+          : 'Se quiser COMPRAR PRODUTOS, cadastre uma conta como COMPRADOR'
+        }
       </Text>
     </View>
   );
@@ -147,6 +168,9 @@ export default ({ navigation }) => {
   };
 
   navigation.addListener('focus', async () => {
+    if (!userIsLogged()) return;
+    setTypeOfUser(await userType());
+
     const getCartResponse = await getCartFromCurrentUser();
 
     if (!getCartResponse.error) {
@@ -324,5 +348,16 @@ const themedStyles = StyleService.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+
+  authButtonsContainer: {
+    height: '100%',
+    marginHorizontal: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  authButtons: {
+    width: '100%',
+    marginVertical: 10,
   },
 });

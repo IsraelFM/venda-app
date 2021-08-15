@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
 export const {
   userIsLogged,
   userType,
+  userId,
   createUserDocument,
   getCurrentUserDocument,
   getAllSellers,
@@ -13,6 +14,7 @@ export const {
 } = {
   userIsLogged: () => auth()?.currentUser ? true : false,
   userType: async () => auth()?.currentUser ? (await getCurrentUserDocument())?.type : 'buyer',
+  userId: () => auth()?.currentUser?.uid,
   createUserDocument: async ({
     userUid,
     userFields,
@@ -23,6 +25,10 @@ export const {
         .doc(userUid)
         .set(userFields);
 
+      await auth().currentUser.updateProfile({
+        displayName: userFields.username
+      });
+
       return {
         success: 'Usuário criado. Verifique seu email para confirmar sua conta'
       }
@@ -32,11 +38,11 @@ export const {
       }
     }
   },
-  getCurrentUserDocument: async () => {
+  getCurrentUserDocument: async ({ uid } = {}) => {
     try {
       const user = await firestore()
         .collection('Users')
-        .doc(auth().currentUser.uid)
+        .doc(uid ? uid : auth().currentUser.uid)
         .get();
 
       return {
@@ -66,7 +72,6 @@ export const {
   },
   updateCurrentUserDocument: async ({ userFields, image = false, name = null }) => {
     try {
-      console.log('update', userFields)
       await firestore()
         .collection('Users')
         .doc(auth().currentUser.uid)

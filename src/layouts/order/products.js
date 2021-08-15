@@ -19,8 +19,10 @@ import { cubeIconOutline, personIconOutline, pricetagsIconOutline, shoppingCartI
 import { showMessage } from 'react-native-flash-message';
 
 import { addToCart } from '../../firebase/orders';
+import { userType } from '../../firebase/users';
 
 export default ({ navigation, route }) => {
+  const [typeOfUser, setTypeOfUser] = React.useState('buyer');
   const [visible, setVisible] = React.useState(false);
   const [modalProduct, setModalProduct] = React.useState({});
   const windowWidth = Dimensions.get('window').width;
@@ -95,21 +97,26 @@ export default ({ navigation, route }) => {
           >
             Ver outros
           </Button>
-          <Button
-            accessoryLeft={shoppingCartIconOutline}
-            size={'large'}
-            onPress={addOneToCart}
-          >
-            ADICIONAR +1
-          </Button>
+          {typeOfUser !== 'seller'
+            ?
+            (<Button
+              accessoryLeft={shoppingCartIconOutline}
+              size={'large'}
+              onPress={addOneToCart}
+            >
+              ADICIONAR +1
+            </Button>)
+            : (<></>)
+          }
         </View>
       </Card>
     </Modal>
   );
 
-  const addOneToCart = async ({ product }) => {
+  const addOneToCart = async ({ product = {} } = {}) => {
     const addToCartResponse = await addToCart({
       sellerId,
+      sellerName,
       newProduct: {
         name: product.name || modalProduct.name,
         uri: product.uri || modalProduct.uri,
@@ -145,6 +152,10 @@ export default ({ navigation, route }) => {
     }
 
     navigation.goBack();
+  });
+
+  navigation.addListener('focus', async () => {
+    setTypeOfUser(await userType());
   });
 
   return (
@@ -188,16 +199,21 @@ export default ({ navigation, route }) => {
           <View style={styles.flexboxProductContainer}>
             {products.map((product, key) => (
               <Card key={key} style={styles.cardProductContainer}>
-                <Button
-                  style={styles.cardCartButtonProductContainer}
-                  accessoryLeft={shoppingCartIconOutline}
-                  size={'small'}
-                  onPress={() => { addOneToCart({ product }); }}
-                >
-                  <Text style={styles.cardCartTextProduct} >
-                    +1
-                  </Text>
-                </Button>
+                {typeOfUser !== 'seller'
+                  ?
+                  (<Button
+                    style={styles.cardCartButtonProductContainer}
+                    accessoryLeft={shoppingCartIconOutline}
+                    size={'small'}
+                    onPress={() => { addOneToCart({ product }); }}
+                  >
+                    <Text style={styles.cardCartTextProduct} >
+                      +1
+                    </Text>
+                  </Button>)
+                  :
+                  (<></>)
+                }
 
                 <TouchableHighlight
                   underlayColor="transparent"
