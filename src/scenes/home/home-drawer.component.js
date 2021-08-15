@@ -15,15 +15,13 @@ import { WebBrowserService } from '../../services/web-browser.service';
 import { AppInfoService } from '../../services/app-info.service';
 import { GithubIcon, HomeIconOutline } from '../../components/icons';
 import { CubeOutlineIcon, GridOutlineIcon, LogInOutlineIcon, LogOutOutlineIcon } from '../../layouts/auth/extra/icons';
-import { userIsLogged, userType } from '../../firebase/users';
+import { userIsLogged } from '../../firebase/users';
 import { logout } from '../../firebase/auth';
 
 const version = AppInfoService.getVersion();
 
 export const HomeDrawer = ({ navigation }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
-
-  const userSellerOrBuyer = userType();
 
   const DATA = [
     {
@@ -36,7 +34,7 @@ export const HomeDrawer = ({ navigation }) => {
     },
     {
       style: {
-        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
+        ...(!userIsLogged() && { display: 'none' } || {}),
       },
       title: 'Produtos',
       icon: GridOutlineIcon,
@@ -47,7 +45,7 @@ export const HomeDrawer = ({ navigation }) => {
     },
     {
       style: {
-        ...((!userIsLogged() || userSellerOrBuyer === 'buyer') && { display: 'none' } || {}),
+        ...(!userIsLogged() && { display: 'none' } || {}),
       },
       title: 'Cadastrar Produtos',
       icon: CubeOutlineIcon,

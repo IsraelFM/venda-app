@@ -2,8 +2,10 @@ import React, { useRef } from 'react';
 import {
   Button,
   Divider,
+  Icon,
   Layout,
   StyleService,
+  Text,
   TopNavigation,
   TopNavigationAction,
   useStyleSheet,
@@ -19,12 +21,13 @@ import { CubeIconOutline, FileTextIconOutline } from './extra/icons';
 import { maskCurrency } from '../../utils/mask';
 
 import ProductValidationSchema from '../../validations/Product';
-import { getCurrentUserDocument, updateCurrentUserDocument } from '../../firebase/users';
+import { getCurrentUserDocument, updateCurrentUserDocument, userType } from '../../firebase/users';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
 
 
 export default ({ navigation }) => {
+  const [typeOfUser, setTypeOfUser] = React.useState('buyer');
   const [image, setImage] = React.useState(null);
 
   const formikRef = useRef();
@@ -35,6 +38,8 @@ export default ({ navigation }) => {
   };
 
   navigation.addListener('focus', async () => {
+    setTypeOfUser(await userType());
+
     const getCurrentUserDocumentResponse = await getCurrentUserDocument();
     if (!getCurrentUserDocument.error) {
       formikRef.current?.setValues(getCurrentUserDocumentResponse);
@@ -126,6 +131,20 @@ export default ({ navigation }) => {
     />
   );
 
+  const buildEmptyStateComponent = () => (
+    <View style={styles.emptyStateContainer} >
+      <Icon
+        fill='#FD6C7B'
+        style={styles.helpIcon}
+        name='alert-circle-outline'
+      />
+      <Text style={styles.emptyStateText} >
+        Se quiser CADASTRAR PRODUTOS, entre em contato com o suporte e solicite uma conta de  VENDEDOR
+      </Text>
+    </View>
+  );
+
+
   return (
     <SafeAreaLayout
       style={styles.safeArea}
@@ -136,72 +155,75 @@ export default ({ navigation }) => {
       />
       <Divider />
 
-      <KeyboardAvoidingView style={styles.container}>
-        <Formik
-          innerRef={formikRef}
-          initialValues={formInitialValues}
-          validationSchema={ProductValidationSchema}
-          onSubmit={handleProfileSubmit}
-        >
-          {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
-            <>
-              <Layout style={styles.formContainer} level='1'>
-                <InputWithError
-                  style={styles.input}
-                  autoCapitalize='none'
-                  maxLength={100}
-                  placeholder='Nome do Produto'
-                  accessoryRight={CubeIconOutline}
-                  value={values.name}
-                  onChangeText={handleChange('name')}
-                  onBlur={() => setFieldTouched('name')}
-                  flags={{ error: errors?.name, touched: touched?.name }}
-                />
-                <InputWithError
-                  style={styles.input}
-                  autoCapitalize='none'
-                  maxLength={500}
-                  placeholder='Descrição do Produto'
-                  multiline={true}
-                  accessoryRight={FileTextIconOutline}
-                  value={values.description}
-                  onChangeText={handleChange('description')}
-                  onBlur={() => setFieldTouched('description')}
-                  flags={{ error: errors?.description, touched: touched?.description }}
-                />
-                <InputWithError
-                  style={styles.input}
-                  keyboardType='numeric'
-                  placeholder='Preço'
-                  maxLength={15}
-                  value={values.price}
-                  onChangeText={(rawPrice) => setFieldValue('price', maskCurrency(rawPrice))}
-                  onBlur={() => setFieldTouched('price')}
-                  flags={{ error: errors?.price, touched: touched?.price }}
-                />
-                <Layout style={styles.imageContainer}>
-                  <Image style={styles.image} source={{ uri: image}} />
-                </Layout>
-              </Layout>
-              <Button
-                style={styles.editButton}
-                size='giant'
-                onPress={selectImage}
-              >
-                SELECIONE UMA IMAGEM
-              </Button>
-              <Button
-                style={styles.editButton}
-                size='giant'
-                disabled={!isValid}
-                onPress={handleSubmit}
-              >
-                CRIAR PRODUTO
-              </Button>
-            </>
-          )}
-        </Formik>
-      </KeyboardAvoidingView>
+      {typeOfUser === 'seller'
+        ? (
+          <KeyboardAvoidingView style={styles.container}>
+            <Formik
+              innerRef={formikRef}
+              initialValues={formInitialValues}
+              validationSchema={ProductValidationSchema}
+              onSubmit={handleProfileSubmit}
+            >
+              {({ values, handleChange, handleSubmit, setFieldTouched, setFieldValue, isValid, touched, errors }) => (
+                <>
+                  <Layout style={styles.formContainer} level='1'>
+                    <InputWithError
+                      style={styles.input}
+                      autoCapitalize='none'
+                      maxLength={100}
+                      placeholder='Nome do Produto'
+                      accessoryRight={CubeIconOutline}
+                      value={values.name}
+                      onChangeText={handleChange('name')}
+                      onBlur={() => setFieldTouched('name')}
+                      flags={{ error: errors?.name, touched: touched?.name }}
+                    />
+                    <InputWithError
+                      style={styles.input}
+                      autoCapitalize='none'
+                      maxLength={500}
+                      placeholder='Descrição do Produto'
+                      multiline={true}
+                      accessoryRight={FileTextIconOutline}
+                      value={values.description}
+                      onChangeText={handleChange('description')}
+                      onBlur={() => setFieldTouched('description')}
+                      flags={{ error: errors?.description, touched: touched?.description }}
+                    />
+                    <InputWithError
+                      style={styles.input}
+                      keyboardType='numeric'
+                      placeholder='Preço'
+                      maxLength={15}
+                      value={values.price}
+                      onChangeText={(rawPrice) => setFieldValue('price', maskCurrency(rawPrice))}
+                      onBlur={() => setFieldTouched('price')}
+                      flags={{ error: errors?.price, touched: touched?.price }}
+                    />
+                    <Layout style={styles.imageContainer}>
+                      <Image style={styles.image} source={{ uri: image }} />
+                    </Layout>
+                  </Layout>
+                  <Button
+                    style={styles.editButton}
+                    size='giant'
+                    onPress={selectImage}
+                  >
+                    SELECIONE UMA IMAGEM
+                  </Button>
+                  <Button
+                    style={styles.editButton}
+                    size='giant'
+                    disabled={!isValid}
+                    onPress={handleSubmit}
+                  >
+                    CRIAR PRODUTO
+                  </Button>
+                </>
+              )}
+            </Formik>
+          </KeyboardAvoidingView>)
+        : buildEmptyStateComponent()}
     </SafeAreaLayout>
   );
 };
@@ -232,7 +254,7 @@ const themedStyles = StyleService.create({
   image: {
     width: 300,
     height: 300,
-    
+
   },
   editButton: {
     borderRadius: 50,
@@ -244,5 +266,27 @@ const themedStyles = StyleService.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: 'color-danger-600',
-  }
+  },
+
+  emptyStateContainer: {
+    flex: 1,
+    borderColor: '#FD6C7B',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    margin: 50,
+  },
+  helpIcon: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+  emptyStateText: {
+    color: '#FD6C7B',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+
 });
