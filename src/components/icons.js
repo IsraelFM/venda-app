@@ -9,6 +9,10 @@ export const ArrowIosForwardIcon = (style) => (
   <Icon {...style} name='arrow-ios-forward'/>
 );
 
+export const ShoppingCartIconOutline = (style) => (
+  <Icon {...style} name='shopping-cart-outline'/>
+);
+
 export const BookIcon = (style) => (
   <Icon {...style} name='book'/>
 );
@@ -25,8 +29,12 @@ export const ArchiveIconOutline = (style) => (
   <Icon {...style} name='archive-outline'/>
 );
 
-export const HeartIconOutline = (style) => (
-  <Icon {...style} name='heart-outline'/>
+export const CarOutlineIcon = (style) => (
+  <Icon {...style} name='car-outline'/>
+);
+
+export const CubeOutlineIcon = (style) => (
+  <Icon {...style} name='cube-outline'/>
 );
 
 export const BookmarkIcon = (style) => (

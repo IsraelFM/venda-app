@@ -7,6 +7,7 @@ import {
   Layout,
   Spinner,
   StyleService,
+  Text,
   TopNavigation,
   TopNavigationAction,
   useStyleSheet,
@@ -35,6 +36,12 @@ import { getCurrentUserDocument, updateCurrentUserDocument, userIsLogged } from 
 import { updatePassword } from '../../firebase/auth';
 
 export default ({ navigation }) => {
+  const renderHeaderText = () => (
+    <Text style={styles.headerText}>
+      PERFIL
+    </Text>
+  );
+
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [oldPasswordVisible, setOldPasswordVisible] = React.useState(false);
   const [loadingCep, setLoadingCep] = React.useState(false);
@@ -164,15 +171,17 @@ export default ({ navigation }) => {
       style={styles.safeArea}
       insets='top'>
       <TopNavigation
-        title='Venda Livre'
+        alignment='center'
+        style={{ backgroundColor: '#EEE' }}
+        title={renderHeaderText}
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
 
       <KeyboardAvoidingView style={styles.container}>
-        { userIsLogged()
-          ? 
-            <Formik
+        {userIsLogged()
+          ?
+          <Formik
             innerRef={formikRef}
             initialValues={formInitialValues}
             validationSchema={userProfileValidationSchema}
@@ -303,17 +312,17 @@ export default ({ navigation }) => {
             )}
           </Formik>
           :
-            <View style={styles.authButtonsContainer} >
-              <Button
-                style={styles.authButtons}
-                onPress={() => navigation.navigate('Auth')}
-                size='giant'
-                accessoryLeft={LogInOutlineIcon}
-                accessoryRight={PersonAddOutlineIcon}
-              >
-                Clique aqui para realizar o{'\n'} LOGIN / CADASTRO
-              </Button>
-            </View>
+          <View style={styles.authButtonsContainer} >
+            <Button
+              style={styles.authButtons}
+              onPress={() => navigation.navigate('Auth')}
+              size='giant'
+              accessoryLeft={LogInOutlineIcon}
+              accessoryRight={PersonAddOutlineIcon}
+            >
+              Clique aqui para realizar o{'\n'} LOGIN / CADASTRO
+            </Button>
+          </View>
         }
       </KeyboardAvoidingView>
 
@@ -338,6 +347,11 @@ export default ({ navigation }) => {
 };
 
 const themedStyles = StyleService.create({
+  headerText: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    textAlign: 'center',
+  },
   safeArea: {
     flex: 1,
   },

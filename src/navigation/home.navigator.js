@@ -3,24 +3,22 @@ import { LogBox } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
-// import { LayoutsNavigator } from './layouts.navigator';
-// import { ComponentsNavigator } from './components.navigator';
 import { AuthNavigator } from './auth.navigator';
 import { ProductNavigator } from './product.navigator';
 import { ProductsNavigator } from './products.navigator';
 import { HomeBottomNavigation } from '../scenes/home/home-bottom-navigation.component';
 import { HomeDrawer } from '../scenes/home/home-drawer.component';
 import { ProfileNavigator } from './profile.navigator';
-import { HomeScreenNavigator } from './homescreen.navigator';
-// import { LibrariesScreen } from '../scenes/libraries/libraries.component';
+import { SellersNavigator } from './order.navigator';
+import { CartNavigator } from './cart.navigator';
+import { HistoryNavigator } from './history.navigator';
 
 const BottomTab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
 const initialTabRoute = 'Home';
 
-// const ROOT_ROUTES = ['Home', 'Favoritos', 'Perfil', 'Histórico'];
-const ROOT_ROUTES = ['Home', 'Perfil'];
+const ROOT_ROUTES = ['Home', 'Carrinho', 'Perfil', 'Histórico'];
 
 const TabBarVisibilityOptions = ({ route }) => {
   const isNestedRoute = route.state?.index > 0;
@@ -34,10 +32,11 @@ const HomeTabsNavigator = () => (
     screenOptions={TabBarVisibilityOptions}
     initialRouteName={initialTabRoute}
     tabBar={props => <HomeBottomNavigation {...props} />}>
-    <BottomTab.Screen name='Home' component={HomeScreenNavigator} />
-    {/* <BottomTab.Screen name='Favoritos' component={ProfileNavigator} /> */}
+    {/* <BottomTab.Screen name='Home' component={HomeScreenNavigator} /> */}
+    <BottomTab.Screen name='Home' component={SellersNavigator} />
+    <BottomTab.Screen name='Carrinho' component={CartNavigator} />
     <BottomTab.Screen name='Perfil' component={ProfileNavigator} />
-    {/* <BottomTab.Screen name='Histórico' component={ProfileNavigator} /> */}
+    <BottomTab.Screen name='Histórico' component={HistoryNavigator} />
   </BottomTab.Navigator>
 );
 

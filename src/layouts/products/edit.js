@@ -11,14 +11,16 @@ import {
   Button,
   Modal,
   Card,
-  Text
+  Text,
+  Icon
 } from '@ui-kitten/components';
 
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
 import { MenuIcon } from '../../components/icons';
-import { getCurrentUserDocument, deleteUserProduct } from '../../firebase/users';
+import { getCurrentUserDocument, deleteUserProduct, userType } from '../../firebase/users';
 
 export default ({ navigation }) => {
+  const [typeOfUser, setTypeOfUser] = React.useState('buyer');
   const [rawProducts, setRawProducts] = React.useState(null)
   const [products, setProducts] = React.useState([])
   const [visible, setVisible] = React.useState(false);
@@ -73,6 +75,23 @@ export default ({ navigation }) => {
     />
   );
 
+  const buildEmptyStateComponent = () => (
+    <View style={styles.emptyStateContainer} >
+      <Icon
+        fill='#FD6C7B'
+        style={styles.helpIcon}
+        name='alert-circle-outline'
+      />
+      <Text style={styles.emptyStateText} >
+        Se quiser CADASTRAR PRODUTOS, entre em contato com o suporte e solicite uma conta de  VENDEDOR
+      </Text>
+    </View>
+  );
+
+  navigation.addListener('focus', async () => {
+    setTypeOfUser(await userType());
+  })
+
   return (
     <SafeAreaLayout
       style={styles.safeArea}
@@ -82,42 +101,47 @@ export default ({ navigation }) => {
         accessoryLeft={renderDrawerAction}
       />
       <Divider />
-      {ListDividersShowcase()}
-      <Modal
-        visible={visible}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setVisible(false)}>
-        <Card disabled={true}>
-          <Text
-            style={styles.productName}
-          >{showProduct.name || 'teste'}</Text>
-          <View>
-            <Image
-              style={styles.imgCard}
-              source={{
-                uri: `${showProduct.uri}`
-              }}
-            />
-          </View>
-          <Text
-            style={styles.productDescription}
-          >{showProduct.description}</Text>
-          <Text
-            style={styles.productDescription}
-          >{`Preço R$ ${showProduct.price}`}</Text>
-          <Button
-            style={styles.backButton}
-            onPress={() => setVisible(false)}>
-            Voltar
-          </Button>
-          <Button onPress={async () => {
-            await deleteUserProduct({ toDelete: showProduct.name })
-            setVisible(false)
-            }}>
-            Deletar
-          </Button>
-        </Card>
-      </Modal>
+      {typeOfUser === 'seller'
+        ? (
+          <>
+            {ListDividersShowcase()}
+            <Modal
+              visible={visible}
+              backdropStyle={styles.backdrop}
+              onBackdropPress={() => setVisible(false)}>
+              <Card disabled={true}>
+                <Text
+                  style={styles.productName}
+                >{showProduct.name || 'teste'}</Text>
+                <View>
+                  <Image
+                    style={styles.imgCard}
+                    source={{
+                      uri: `${showProduct.uri}`
+                    }}
+                  />
+                </View>
+                <Text
+                  style={styles.productDescription}
+                >{showProduct.description}</Text>
+                <Text
+                  style={styles.productDescription}
+                >{`Preço R$ ${showProduct.price}`}</Text>
+                <Button
+                  style={styles.backButton}
+                  onPress={() => setVisible(false)}>
+                  Voltar
+                </Button>
+                <Button onPress={async () => {
+                  await deleteUserProduct({ toDelete: showProduct.name })
+                  setVisible(false)
+                }}>
+                  Deletar
+                </Button>
+              </Card>
+            </Modal>
+          </>)
+        : buildEmptyStateComponent()}
     </SafeAreaLayout>
   );
 };
@@ -171,5 +195,26 @@ const themedStyles = StyleService.create({
   backButton: {
     marginBottom: 10,
     backgroundColor: 'color-info-600'
-  }
+  },
+
+  emptyStateContainer: {
+    flex: 1,
+    borderColor: '#FD6C7B',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    margin: 50,
+  },
+  helpIcon: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+  emptyStateText: {
+    color: '#FD6C7B',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
